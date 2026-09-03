@@ -901,3 +901,38 @@ body{
   .login-hero h1,.login-hero p{text-align:center;}
   .login-hero .big-logo{margin-left:auto;margin-right:auto;}
 }
+
+/* ===== ENCABEZADO Y CERRAR SESIÓN EN CELULAR ===== */
+@media(max-width:720px){
+  .topbar{
+    position:relative;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    text-align:center;
+  }
+
+  .welcome{
+    width:100%;
+    justify-content:center;
+    text-align:center;
+  }
+
+  .welcome h1,
+  .welcome p{
+    text-align:center;
+  }
+
+  .logout{
+    order:2;
+    width:auto;
+    margin:0 auto;
+  }
+
+  .mobile-menu{
+    position:absolute;
+    right:0;
+    top:0;
+  }
+}
