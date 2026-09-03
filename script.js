@@ -54,6 +54,44 @@ function render(data){
  $('estado').textContent=pending>0?'PENDIENTE':'AL DÍA';
  $('estadoMensaje').textContent=pending>0?'Revisa los meses pendientes y el saldo de tu cuenta.':'Gracias por mantenerte al día con tus pagos.';
 
+ // ===== ALERTA POR MORA =====
+ const mesesPendientes = Number(c.cantidadPendientes) || 0;
+ let alerta = document.getElementById('moraAlerta');
+ if(alerta) alerta.remove();
+
+ if(mesesPendientes >= 2){
+   alerta=document.createElement('div');
+   alerta.id='moraAlerta';
+   alerta.setAttribute('role','alert');
+   alerta.style.cssText='margin:16px 0;padding:16px 18px;border-radius:14px;border:1px solid;display:flex;align-items:flex-start;gap:12px;font-size:.82rem;line-height:1.5;box-sizing:border-box';
+   const icon=document.createElement('div');
+   icon.style.cssText='font-size:1.45rem;line-height:1;flex:0 0 auto';
+   const content=document.createElement('div');
+   const title=document.createElement('strong');
+   title.style.display='block';
+   title.style.marginBottom='3px';
+   const message=document.createElement('div');
+
+   if(mesesPendientes>=3){
+     alerta.style.background='#fff1f1';
+     alerta.style.borderColor='#e05a5a';
+     alerta.style.color='#8f1d1d';
+     icon.textContent='🔴';
+     title.textContent='AVISO IMPORTANTE: RIESGO DE SUSPENSIÓN';
+     message.textContent='Mantienes '+mesesPendientes+' meses de mensualidad pendientes. Tu servicio de agua corre riesgo de suspensión por mora. Te recomendamos regularizar tu cuenta lo antes posible.';
+   }else{
+     alerta.style.background='#fff8e8';
+     alerta.style.borderColor='#e3a72f';
+     alerta.style.color='#765000';
+     icon.textContent='⚠️';
+     title.textContent='AVISO IMPORTANTE: MORA PENDIENTE';
+     message.textContent='Mantienes 2 meses de mensualidad pendientes. Te recomendamos ponerte al día para evitar inconvenientes con el servicio de agua.';
+   }
+   content.append(title,message);
+   alerta.append(icon,content);
+   $('status').insertAdjacentElement('afterend',alerta);
+ }
+
  const grid=$('monthGrid');clear(grid);
  (c.historial||[]).forEach(p=>{
    const card=document.createElement('div');
