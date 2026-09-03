@@ -902,14 +902,16 @@ body{
   .login-hero .big-logo{margin-left:auto;margin-right:auto;}
 }
 
-/* ===== ENCABEZADO Y CERRAR SESIÓN EN CELULAR ===== */
+/* ===== AJUSTE FINAL DEL ENCABEZADO EN CELULAR ===== */
 @media(max-width:720px){
   .topbar{
     position:relative;
+    display:flex;
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:8px;
+    width:100%;
+    gap:9px;
     text-align:center;
   }
 
@@ -917,6 +919,7 @@ body{
     width:100%;
     justify-content:center;
     text-align:center;
+    margin:0 auto;
   }
 
   .welcome h1,
@@ -924,15 +927,23 @@ body{
     text-align:center;
   }
 
+  /* Botón Cerrar sesión centrado debajo del encabezado */
   .logout{
     order:2;
     width:auto;
     margin:0 auto;
   }
 
+  /* Menú a la izquierda en celular */
   .mobile-menu{
     position:absolute;
-    right:0;
+    left:0;
+    right:auto;
     top:0;
+  }
+
+  /* Quitar el logo del encabezado de la segunda pantalla en celular */
+  .header-logo{
+    display:none!important;
   }
 }
