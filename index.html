@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Junta de Agua Cayo Blanco | Bienvenido a tu portal del Abonado</title>
+<meta name="description" content="Portal del abonado de la Junta de Agua Cayo Blanco">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="menuBackdrop" class="menu-backdrop"></div>
+<div class="app">
+<aside id="sidebar" class="sidebar">
+  <div class="brand">
+    <div class="logo"><img src="LOGO.png" alt="Junta de Agua Cayo Blanco"></div>
+    <div><strong>JUNTA DE AGUA<br>CAYO BLANCO</strong><small>Portal del Abonado</small></div>
+  </div>
+  <nav class="nav" aria-label="Navegación">
+    <button data-target="inicio" class="active"><span class="nav-icon">⌂</span>Inicio</button>
+    <button data-target="pagos"><span class="nav-icon">💧</span>Estado de Cuenta</button>
+    <button data-target="comunicados"><span class="nav-icon">📢</span>Comunicados</button>
+    <button data-target="suministro"><span class="nav-icon">🚰</span>Suministro</button>
+    <button data-target="cortes"><span class="nav-icon">🚱</span>Cortes</button>
+    <button data-target="reuniones"><span class="nav-icon">👥</span>Reuniones</button>
+    <button data-target="consejos"><span class="nav-icon">💧</span>Consejos</button>
+    <button data-target="contactos"><span class="nav-icon">👨‍💻</span>Contactos</button>
+  </nav>
+  <div class="side-help"><strong>¿Necesitas ayuda?</strong><br>Consulta la información de tu cuenta o comunícate con la Junta de Agua.</div>
+  <div class="side-footer">2026 Junta de Agua Cayo Blanco | COA SISTEMS</div>
+</aside>
+
+<main class="main">
+<div class="content">
+  <section id="login" class="login-wrap">
+    <div class="login-hero">
+      <div class="big-logo"><img src="LOGO.png" alt="Junta Administradora de Agua Potable Cayo Blanco"></div>
+      <h1>Bienvenido a tu portal del Abonado</h1>
+      <p>Consulta tu estado de cuenta, pagos y toda la información de la Junta de Agua.</p>
+    </div>
+    <div class="login-card">
+      <div class="label"><label for="identidad">Número de identidad</label><span>Acceso del abonado</span></div>
+      <input id="identidad" inputmode="tel" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="0801-1990-12345" maxlength="15">
+      <button id="consultar" class="primary" type="button">Consultar mi cuenta</button>
+      <div id="loginMsg" class="msg hidden" role="alert"></div>
+      <p class="hint">Ingrese el número de identidad registrado ante la Junta de Agua.</p>
+    </div>
+  </section>
+
+  <section id="panel" class="hidden" aria-live="polite">
+  <div class="topbar interior-topbar">
+    <button id="menuBtn" class="mobile-menu hidden" aria-label="Mostrar u ocultar menú">☰</button>
+    <div class="welcome">
+      <img class="header-logo" src="LOGO.png" alt="Junta Administradora de Agua Potable Cayo Blanco">
+      <div><h1>Junta de Agua Cayo Blanco</h1><p>Portal del abonado · Información de tu cuenta</p></div>
+    </div>
+    <button id="salir" class="logout hidden" type="button">Cerrar sesión</button>
+  </div>
+  <section id="inicio" class="screen active">
+    <div class="account">
+      <div>
+        <div class="profile">
+          <div class="avatar">👤</div>
+          <div><h2 id="nombre">Abonado</h2><p>Información de tu cuenta</p></div>
+        </div>
+        <div class="meta">
+          <div>Código<strong id="codigo">—</strong></div>
+          <div>Identidad<strong id="identidadVista">—</strong></div>
+          <div>Dirección<strong id="direccion">—</strong></div>
+          <div>Estado<strong><span id="estadoAbonado" class="badge">● ACTIVO</span></strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric blue"><div class="icon">💧</div><small>Total pagado</small><strong id="pagadoTotal">L0.00</strong><span id="anioMetric">Este año</span></div>
+      <div class="metric green"><div class="icon">🟢</div><small>Mensualidades pagadas</small><strong id="mensualidadesPagadas">L0.00</strong><span id="mesesPagadosTexto">0 meses</span></div>
+      <div class="metric orange"><div class="icon">🟠</div><small>Mora pagada</small><strong id="moraPagada">L0.00</strong><span id="mesesMoraTexto">Sin mora</span></div>
+      <div class="metric dark"><div class="icon">🔴</div><small>Saldo pendiente</small><strong id="deuda">L0.00</strong><span id="pendienteTexto">Estás al día</span></div>
+    </div>
+
+    <div id="status" class="status">
+      <div class="left"><div class="status-icon">✓</div><div><div class="eyebrow">Estado de tu cuenta</div><h3 id="estado">AL DÍA</h3><div id="estadoMensaje" style="color:var(--muted);font-size:.78rem;margin-top:4px">Gracias por mantenerte al día con tus pagos.</div></div></div>
+      <div class="debt"><small>Saldo pendiente</small><div id="deudaGrande" class="amount">L0.00</div></div>
+    </div>
+
+    <section class="meeting-summary">
+      <div class="summary-head">
+        <div class="summary-title"><div class="summary-icon">📅</div><div><h3>Reuniones asistidas</h3><p>Tu asistencia y multas registradas</p></div></div>
+        <button class="outline" data-target="reuniones">Ver detalle</button>
+      </div>
+      <div class="meeting-stats">
+        <div class="meeting-stat"><small>Reuniones</small><strong id="reunionesTotal">0</strong></div>
+        <div class="meeting-stat attended"><small>Asistidas</small><strong id="reunionesAsistidas">0</strong></div>
+        <div class="meeting-stat fine"><small>Multas</small><strong id="reunionesMultas">L 0.00</strong></div>
+      </div>
+    </section>
+
+    <section id="pagos" class="card pay-card">
+      <div class="card-head">
+        <div class="card-title"><div class="ico">📅</div><div><h3>Pagos 2026</h3><p>Detalle de tus pagos mensuales</p></div></div>
+        <button class="outline" data-target="historial">Ver historial</button>
+      </div>
+      <div class="card-body">
+        <div id="monthGrid" class="month-grid"></div>
+        <div class="legend">
+          <span><i style="background:var(--green)"></i>Pagado</span>
+          <span><i style="background:var(--orange)"></i>Pagado con mora</span>
+          <span><i style="background:var(--red)"></i>Pendiente</span>
+          <span><i style="background:var(--gray)"></i>Aún no corresponde</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="quick card">
+      <div class="card-head"><div class="card-title"><div class="ico">⚡</div><div><h3>Acciones rápidas</h3><p>Accede directamente a la información</p></div></div></div>
+      <div class="card-body"><div class="quick-grid">
+        <button data-target="historial"><span class="qico">📋</span>Historial de pagos</button>
+        <button data-target="comunicados"><span class="qico">📢</span>Ver comunicados</button>
+        <button data-target="suministro"><span class="qico">🚰</span>Próximo suministro</button>
+        <button data-target="cortes"><span class="qico">🚱</span>Ver cortes</button>
+        <button data-target="reuniones"><span class="qico">👥</span>Próximas reuniones</button>
+        <button data-target="contactos"><span class="qico">👨‍💻</span>Contactos</button>
+      </div></div>
+    </section>
+
+    
+  </section>
+
+  <section id="historial" class="screen card section secondary">
+    <div class="view-head"><div><h2>Historial de pagos</h2><p>Consulta tus pagos registrados durante el año.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">📋</div><div><h3>Historial de pagos</h3><p>Movimientos registrados durante el año</p></div></div></div>
+    <div class="card-body"><div id="historialLista" class="list"></div></div>
+  </section>
+
+  <section id="comunicados" class="screen card section secondary">
+    <div class="view-head"><div><h2>Comunicados</h2><p>Información y avisos importantes de la Junta de Agua.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">📢</div><div><h3>Comunicados</h3><p>Información importante</p></div></div></div>
+    <div class="card-body"><div id="comunicadosLista" class="list"></div></div>
+  </section>
+
+  <section id="suministro" class="screen card section secondary">
+    <div class="view-head"><div><h2>Suministro de agua</h2><p>Consulta los horarios publicados.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">🚰</div><div><h3>Suministro</h3><p>Horarios publicados</p></div></div></div>
+    <div class="card-body"><div id="suministroLista" class="list"></div></div>
+  </section>
+
+  <section id="cortes" class="screen card section secondary">
+    <div class="view-head"><div><h2>Cortes programados</h2><p>Consulta interrupciones y trabajos programados.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">🛠️</div><div><h3>Cortes programados</h3><p>Avisos de interrupciones</p></div></div></div>
+    <div class="card-body"><div id="cortesLista" class="list"></div></div>
+  </section>
+
+  <section id="reuniones" class="screen card section secondary">
+    <div class="view-head"><div><h2>Reuniones</h2><p>Próximas reuniones, asistencia y multas.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">👥</div><div><h3>Próximas reuniones</h3><p>Actividades publicadas por la Junta</p></div></div></div>
+    <div class="card-body"><div id="reunionesLista" class="list"></div></div>
+    <div class="card-head"><div class="card-title"><div class="ico">📅</div><div><h3>Mi asistencia</h3><p>Las casillas marcadas son asistencias; las no marcadas generan L200 de multa.</p></div></div></div>
+    <div class="card-body">
+      <div id="reunionesDetalleResumen" class="meeting-stats" style="padding:0 0 14px"></div>
+      <div id="reunionesAsistenciaLista" class="meeting-detail"></div>
+    </div>
+  </section>
+
+  <section id="consejos" class="screen card section secondary">
+    <div class="view-head"><div><h2>Consejos</h2><p>Recomendaciones para cuidar y ahorrar agua.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">💧</div><div><h3>Consejos para cuidar el agua</h3><p>Recomendaciones de la Junta</p></div></div></div>
+    <div class="card-body"><div id="consejosLista" class="list"></div></div>
+  </section>
+
+  <section id="contactos" class="screen card section secondary">
+    <div class="view-head">
+      <div><h2>Contactos</h2><p>Comunícate con la Junta de Agua cuando necesites ayuda.</p></div>
+      <button class="back-home" data-target="inicio">← Volver al inicio</button>
+    </div>
+    <div class="contact-list">
+      <article class="contact-person">
+        <div class="contact-person-icon">👨‍💻</div>
+        <div class="contact-person-info">
+          <div class="contact-role">SOPORTE DE SISTEMAS</div>
+          <h3>Cristhian Osorio Acosta</h3>
+          <p>Área de Sistemas · Junta de Agua Cayo Blanco</p>
+          <div class="contact-number">📱 9677-5363</div>
+        </div>
+        <div class="contact-person-actions">
+          <a class="contact-action call" href="tel:+50496775363">📞 <span>Llamar</span></a>
+          <a class="contact-action wa" href="https://wa.me/50496775363" target="_blank" rel="noopener">💬 <span>WhatsApp</span></a>
+        </div>
+      </article>
+      <!-- Aquí podremos agregar los demás contactos después. -->
+    </div>
+  </section>
+
+</section>
+
+  <footer class="footer">2026 Junta de Agua Cayo Blanco · Cuidemos el agua, cuidemos nuestro futuro.</footer>
+</div>
+</main>
+</div>
+
+
+<script src="script.js" defer></script>
+</body>
+</html>
