@@ -1,0 +1,16 @@
+INTEGRACIÓN DE REUNIONES Y MULTAS
+
+1. Abre el proyecto de Apps Script que actualmente alimenta el portal.
+2. Pega el contenido de reuniones_multas_apps_script.gs en un archivo .gs nuevo, o al final del archivo existente.
+3. Dentro de tu función doGet(e), después de obtener la identidad y antes de devolver la respuesta JSON/JSONP, agrega esta propiedad al objeto de respuesta:
+
+   respuesta.reunionesMultas = obtenerReunionesYMultas_(identidad);
+
+   Si tu objeto de respuesta tiene otro nombre, usa ese nombre.
+
+4. Guarda y crea una NUEVA implementación del Web App usando la misma URL/servicio que ya utiliza el portal.
+5. No cambies la hoja REUNIONES Y MULTAS. El código espera las fechas en la fila 2 y las casillas desde la columna C.
+6. Casilla marcada = asistió. Casilla sin marcar = L100 de multa.
+7. La fecha 09/81/2028 que aparece en los datos actuales se deja intacta para que la corrijas directamente en Google Sheets si corresponde.
+
+IMPORTANTE: Esta integración muestra las multas de reuniones por separado. No las suma automáticamente al saldo de mensualidades, para no alterar el cálculo actual de PAGOS.
