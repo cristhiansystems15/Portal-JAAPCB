@@ -18,7 +18,7 @@ function jsonp(url){
   const timer=setTimeout(()=>{
    cleanup();
    reject(new Error('Tiempo de espera agotado.'));
-  },30000);
+  },60000);
   window[cb]=data=>{cleanup();resolve(data);};
   script.async=true;
   script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();
@@ -37,9 +37,9 @@ function mostrarCarga(){
  carga.innerHTML=`<div style="width:min(430px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:28px;box-shadow:0 18px 55px rgba(0,0,0,.12);text-align:center;font-family:inherit">
   <div style="font-size:2rem;margin-bottom:10px">💧</div>
   <div id="cargaTitulo" style="font-size:1.05rem;font-weight:700;color:#17202a;margin-bottom:7px">Buscando información del abonado…</div>
-  <div id="cargaDetalle" style="font-size:.86rem;color:#667085;margin-bottom:18px">Por favor espere mientras consultamos su cuenta.</div>
+  <div id="cargaDetalle" style="font-size:.86rem;color:#667085;margin-bottom:18px">Esta consulta puede tardar hasta 1 minuto mientras verificamos pagos, reuniones, multas y la información del servicio. Por favor espere y no cierre esta página.</div>
   <div style="height:9px;background:#edf1f5;border-radius:99px;overflow:hidden"><div id="cargaBarra" style="height:100%;width:12%;border-radius:99px;background:#1976d2;transition:width .45s ease"></div></div>
-  <div id="cargaPorcentaje" style="font-size:.76rem;color:#667085;margin-top:8px">12%</div>
+  <div id="cargaPorcentaje" style="font-size:.76rem;color:#667085;margin-top:8px">Consulta en proceso · progreso aproximado</div>
  </div>`;
  document.body.appendChild(carga);
  const etapas=[
@@ -58,7 +58,7 @@ function mostrarCarga(){
    if(barra)barra.style.width=p+'%';
    if(titulo)titulo.textContent=t;
    if(detalle)detalle.textContent=d;
-   if(porcentaje)porcentaje.textContent=p+'%';
+   if(porcentaje)porcentaje.textContent='Consulta en proceso · progreso aproximado';
    setTimeout(avanzar,700);
   }
  };
@@ -69,7 +69,7 @@ function ocultarCarga(){
  if(carga){
   const barra=document.getElementById('cargaBarra'), porcentaje=document.getElementById('cargaPorcentaje');
   if(barra)barra.style.width='100%';
-  if(porcentaje)porcentaje.textContent='100%';
+  if(porcentaje)porcentaje.textContent='Consulta completada';
   setTimeout(()=>carga.remove(),250);
  }
 }
@@ -239,15 +239,17 @@ async function consultar(){
    if(!data||!data.ok){
     ocultarCarga();
     showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');
+    $('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';
     return;
    }
    render(data);
    ocultarCarga();
  }catch(err){
    ocultarCarga();
-   showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');
+   showError('La consulta está tardando más de lo esperado. Si no aparece su cuenta, espere unos segundos e inténtelo nuevamente.');
+   console.warn('JAAPCB consulta sin respuesta tras 60 segundos:',err);
+   $('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';
  }
- finally{$('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';}
 }
 function salir(){
  $('panel').classList.add('hidden');$('login').classList.remove('hidden');$('salir').classList.add('hidden');
