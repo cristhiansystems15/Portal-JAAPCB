@@ -236,9 +236,17 @@ async function consultar(){
  mostrarCarga();
  try{
    const data=await jsonp(API_URL+'?identidad='+encodeURIComponent(id));
-   if(!data||!data.ok){showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');return;}
+   if(!data||!data.ok){
+    ocultarCarga();
+    showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');
+    return;
+   }
    render(data);
- }catch(err){ocultarCarga();showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');}
+   ocultarCarga();
+ }catch(err){
+   ocultarCarga();
+   showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');
+ }
  finally{$('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';}
 }
 function salir(){
