@@ -1,4 +1,4 @@
-const API_URL='https://script.google.com/macros/s/AKfycbzy9wONtVS11Klbo1466zhScgViQa-nKFsapzaNIxSt0e6afxSRLHn-ba5MDX7t8HIcOg/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbxKQI_b67PBpFgAxY-0-dAaoVtdQ3E1SUZxZeXEO9QPepJbTzZXEgKiChdQNZQDmgHLfQ/exec';
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',minimumFractionDigits:2}).format(Number(n)||0);
 
@@ -256,6 +256,9 @@ function salir(){
  $('menuBtn').classList.add('hidden');
  $('sidebar').classList.remove('opened','open');
  $('menuBackdrop').classList.remove('show');
+ $('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';
+ $('loginMsg').className='msg hidden';
+ ocultarCarga();
  $('identidad').value='';$('identidad').focus();window.scrollTo({top:0,behavior:'smooth'});
 }
 function go(target){
