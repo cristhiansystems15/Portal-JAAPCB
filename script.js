@@ -5,16 +5,108 @@ const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',mi
 function showError(text){ $('loginMsg').textContent=text; $('loginMsg').className='msg error'; }
 function jsonp(url){
  return new Promise((resolve,reject)=>{
-  const cb='juntaAgua_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+  const cb='juntaAgua_'+Date.now()+'_'+Math.floor(Math.random()*100000);
   const script=document.createElement('script');
-  const timer=setTimeout(()=>{cleanup();reject(new Error('Tiempo de espera agotado.'));},15000);
-  function cleanup(){clearTimeout(timer);delete window[cb];script.remove();}
-  window[cb]=data=>{cleanup();resolve(data);};
-  script.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
-  script.onerror=()=>{cleanup();reject(new Error('No se pudo conectar con el servidor.'));};
+  let terminado=false;
+
+  function cleanup(){
+   if(terminado)return;
+   terminado=true;
+   clearTimeout(timer);
+   try{delete window[cb];}catch(e){window[cb]=undefined;}
+   if(script.parentNode)script.parentNode.removeChild(script);
+  }
+
+  const timer=setTimeout(()=>{
+   cleanup();
+   reject(new Error('Tiempo de espera agotado.'));
+  },30000);
+
+  window[cb]=data=>{
+   cleanup();
+   resolve(data);
+  };
+
+  script.async=true;
+  script.src=url+(url.includes('?')?'&':'?')
+    +'callback='+encodeURIComponent(cb)
+    +'&_='+Date.now();
+
+  script.onerror=()=>{
+   cleanup();
+   reject(new Error('No se pudo cargar la respuesta del servidor.'));
+  };
+
   document.body.appendChild(script);
  });
 }
+
+function mostrarCarga(){
+ let carga=document.getElementById('cargaConsulta');
+ if(carga)carga.remove();
+
+ carga=document.createElement('div');
+ carga.id='cargaConsulta';
+ carga.setAttribute('role','status');
+ carga.setAttribute('aria-live','polite');
+ carga.style.cssText=[
+  'position:fixed','inset:0','z-index:99999','display:flex',
+  'align-items:center','justify-content:center','padding:20px',
+  'background:rgba(255,255,255,.94)','backdrop-filter:blur(5px)',
+  'box-sizing:border-box'
+ ].join(';');
+
+ carga.innerHTML=`
+  <div style="width:min(430px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:28px;box-shadow:0 18px 55px rgba(0,0,0,.12);text-align:center;font-family:inherit">
+   <div style="font-size:2rem;margin-bottom:10px">💧</div>
+   <div id="cargaTitulo" style="font-size:1.05rem;font-weight:700;color:#17202a;margin-bottom:7px">Buscando información del abonado…</div>
+   <div id="cargaDetalle" style="font-size:.86rem;color:#667085;margin-bottom:18px">Por favor espere mientras consultamos su cuenta.</div>
+   <div style="height:9px;background:#edf1f5;border-radius:99px;overflow:hidden">
+    <div id="cargaBarra" style="height:100%;width:12%;border-radius:99px;background:#1976d2;transition:width .45s ease"></div>
+   </div>
+   <div id="cargaPorcentaje" style="font-size:.76rem;color:#667085;margin-top:8px">12%</div>
+  </div>`;
+
+ document.body.appendChild(carga);
+
+ const etapas=[
+  [12,'Buscando información del abonado…','Verificando sus datos en el sistema.'],
+  [35,'Consultando pagos…','Revisando el historial de mensualidades.'],
+  [58,'Consultando reuniones y multas…','Verificando asistencia y multas registradas.'],
+  [78,'Cargando información del servicio…','Consultando comunicados, suministro y cortes.'],
+  [92,'Preparando su cuenta…','Organizando toda la información para mostrarla.']
+ ];
+
+ let i=0;
+ const avanzar=()=>{
+  if(!document.getElementById('cargaConsulta'))return;
+  if(i<etapas.length){
+   const [p,t,d]=etapas[i++];
+   const barra=document.getElementById('cargaBarra');
+   const titulo=document.getElementById('cargaTitulo');
+   const detalle=document.getElementById('cargaDetalle');
+   const porcentaje=document.getElementById('cargaPorcentaje');
+   if(barra)barra.style.width=p+'%';
+   if(titulo)titulo.textContent=t;
+   if(detalle)detalle.textContent=d;
+   if(porcentaje)porcentaje.textContent=p+'%';
+   setTimeout(avanzar,700);
+  }
+ };
+ setTimeout(avanzar,350);
+}
+
+function ocultarCarga(){
+ const carga=document.getElementById('cargaConsulta');
+ if(carga){
+  const barra=document.getElementById('cargaBarra');
+  const porcentaje=document.getElementById('cargaPorcentaje');
+  if(barra)barra.style.width='100%';
+  if(porcentaje)porcentaje.textContent='100%';
+  setTimeout(()=>carga.remove(),250);
+ }
+}
+
 function clear(el){el.innerHTML='';}
 function empty(el,text='No hay información disponible.'){clear(el);const p=document.createElement('p');p.className='empty';p.textContent=text;el.appendChild(p);}
 function addItem(container,title,date,text){
@@ -174,11 +266,16 @@ async function consultar(){
  $('identidad').value=id;
  if(id.replace(/\D/g,'').length!==13){showError('Escriba un número de identidad válido.');return;}
  $('loginMsg').className='msg hidden';$('consultar').disabled=true;$('consultar').textContent='Consultando…';
+ mostrarCarga();
  try{
    const data=await jsonp(API_URL+'?identidad='+encodeURIComponent(id));
-   if(!data||!data.ok){showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');return;}
+   if(!data||!data.ok){ocultarCarga();showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');return;}
    render(data);
- }catch(err){showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');}
+   ocultarCarga();
+ }catch(err){
+   ocultarCarga();
+   showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');
+ }
  finally{$('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';}
 }
 function salir(){
