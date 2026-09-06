@@ -1,14 +1,3 @@
-name=script.js url=https://github.com/cristhiansystems15/Portal-JAAPCB/blob/main/script.js
-/**
- * Portal JAAPCB - Sistema de Gestión de Abonados
- * Junta de Agua Administradora de Agua Potable Cayo Blanco
- * Version: 2.0.0
- * Desarrollado por: COA Systems
- */
-
-// =============================================
-// CONFIGURACIÓN Y CONSTANTES
-// =============================================
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbwWiYEUWk3RahxMiKTlqoD7xAQX6gpVorulHJgpnXWqS85Ta52rYTRPJNhLImXUIY_Bvw/exec',
   TIMEOUT_CONSULTA: 60000, // 60 segundos
