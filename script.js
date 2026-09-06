@@ -35,7 +35,7 @@ function render(data){
  const estadoEl = $('estadoAbonado');
  const estadoTexto = String(a.estado || 'ACTIVO').trim();
  const estadoNormalizado = estadoTexto.toUpperCase()
-   .normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+   .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
  const esInactivo = /INACTIV|SUSPEND|BAJA|CANCEL/.test(estadoNormalizado);
  const esActivo = !esInactivo && /ACTIV/.test(estadoNormalizado);
  estadoEl.textContent = '● '+estadoTexto;
@@ -89,6 +89,8 @@ function render(data){
  renderList('reunionesLista',data.reuniones,x=>addItem($('reunionesLista'),x.descripcion,x.fecha,(x.lugar||'')+' · '+(x.hora||'')),'No hay reuniones publicadas.');
  renderList('consejosLista',data.consejos,x=>addItem($('consejosLista'),x.titulo,x.fecha,x.consejo),'No hay consejos publicados.');
 
+ renderReunionesMultas(data.reunionesMultas);
+
  $('login').classList.add('hidden');
  $('panel').classList.remove('hidden');
  $('salir').classList.remove('hidden');
@@ -98,14 +100,68 @@ function render(data){
  document.querySelector('.topbar').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+function renderReunionesMultas(rm){
+ const total=rm?Number(rm.totalReuniones)||0:0;
+ const asistidas=rm?Number(rm.asistidas)||0:0;
+ const totalMultas=rm?Number(rm.totalMultas)||0:0;
+ $('reunionesTotal').textContent=total;
+ $('reunionesAsistidas').textContent=asistidas;
+ $('reunionesMultas').textContent=money(totalMultas);
+
+ const mkStat=(label,value,cls)=>{
+   const d=document.createElement('div');d.className='meeting-stat'+(cls?' '+cls:'');
+   const s=document.createElement('small');s.textContent=label;
+   const strong=document.createElement('strong');strong.textContent=value;
+   d.append(s,strong);return d;
+ };
+ const resumen=$('reunionesDetalleResumen');clear(resumen);
+ resumen.append(
+   mkStat('Reuniones',total),
+   mkStat('Asistidas',asistidas,'attended'),
+   mkStat('Multas',money(totalMultas),'fine')
+ );
+
+ const lista=$('reunionesAsistenciaLista');clear(lista);
+ (rm&&rm.detalle||[]).forEach(d=>{
+   const row=document.createElement('div');row.className='meeting-row';
+   const left=document.createElement('div');
+   const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';
+   const status=document.createElement('div');status.className='meeting-status '+(d.asistio?'yes':'no');status.textContent=d.asistio?'Asistió':'No asistió';
+   left.append(date,status);
+   const fine=document.createElement('div');fine.className='meeting-fine';fine.textContent=money(d.multa||0);
+   row.append(left,fine);lista.appendChild(row);
+ });
+ if(!lista.children.length)empty(lista,'Sin registro de asistencia disponible.');
+}
+
+const MAX_INTENTOS=5, BLOQUEO_MS=60000;
+let intentosFallidos=0, bloqueadoHasta=0;
+
 async function consultar(){
+ const ahora=Date.now();
+ if(ahora<bloqueadoHasta){
+   const seg=Math.ceil((bloqueadoHasta-ahora)/1000);
+   showError('Demasiados intentos. Intente de nuevo en '+seg+' segundos.');
+   return;
+ }
  const id=formatIdentidad($('identidad').value.trim());
  $('identidad').value=id;
  if(id.replace(/\D/g,'').length!==13){showError('Escriba un número de identidad válido.');return;}
  $('loginMsg').className='msg hidden';$('consultar').disabled=true;$('consultar').textContent='Consultando…';
  try{
    const data=await jsonp(API_URL+'?identidad='+encodeURIComponent(id));
-   if(!data||!data.ok){showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');return;}
+   if(!data||!data.ok){
+     intentosFallidos++;
+     if(intentosFallidos>=MAX_INTENTOS){
+       bloqueadoHasta=Date.now()+BLOQUEO_MS;
+       intentosFallidos=0;
+       showError('Demasiados intentos fallidos. Intente de nuevo en 60 segundos.');
+     }else{
+       showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');
+     }
+     return;
+   }
+   intentosFallidos=0;
    render(data);
  }catch(err){showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');}
  finally{$('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';}
