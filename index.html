@@ -121,6 +121,8 @@
         <button data-target="suministro"><span class="qico">🚰</span>Próximo suministro</button>
         <button data-target="cortes"><span class="qico">🚱</span>Ver cortes</button>
         <button data-target="reuniones"><span class="qico">👥</span>Próximas reuniones</button>
+        <button data-target="trabajo"><span class="qico">🛠️</span>Días de trabajo</button>
+        <button data-target="peque"><span class="qico">🏠</span>PEQUE</button>
         <button data-target="contactos"><span class="qico">👨‍💻</span>Contactos</button>
       </div></div>
     </section>
@@ -161,6 +163,20 @@
       <div id="reunionesDetalleResumen" class="meeting-stats" style="padding:0 0 14px"></div>
       <div id="reunionesAsistenciaLista" class="meeting-detail"></div>
     </div>
+  </section>
+
+  <section id="trabajo" class="screen card section secondary">
+    <div class="view-head"><div><h2>Días de trabajo</h2><p>Registro de días trabajados y multas.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="meeting-stats"><div class="meeting-stat"><small>Días</small><strong id="trabajoTotal">0</strong></div><div class="meeting-stat attended"><small>Trabajados</small><strong id="trabajoRealizados">0</strong></div><div class="meeting-stat fine"><small>Multas pendientes</small><strong id="trabajoMultas">L 0.00</strong></div></div>
+    <div class="card-head"><div class="card-title"><div class="ico">🛠️</div><div><h3>Mi trabajo</h3><p>Si no trabajó, la multa es L350. Si ya pagó, aparece como PAGADO y no se suma al saldo.</p></div></div></div>
+    <div class="card-body"><div id="trabajoDetalleLista" class="meeting-detail"></div></div>
+  </section>
+
+  <section id="peque" class="screen card section secondary">
+    <div class="view-head"><div><h2>PEQUE</h2><p>Aporte total establecido: L4,500. Plazo de pago: 6 meses.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="meeting-stats"><div class="meeting-stat"><small>Total</small><strong>L4,500</strong></div><div class="meeting-stat attended"><small>Pagado</small><strong id="pequePagado">L0.00</strong></div><div class="meeting-stat fine"><small>Saldo</small><strong id="pequeSaldo">L4,500.00</strong></div></div>
+    <div class="card-head"><div class="card-title"><div class="ico">🏠</div><div><h3 id="pequeEstado">PENDIENTE</h3><p>El saldo del PEQUE se suma al saldo general hasta quedar cancelado.</p></div></div></div>
+    <div class="card-body"><div style="height:10px;background:#e8edf2;border-radius:99px;overflow:hidden"><div id="pequeProgress" style="height:100%;width:0%;background:var(--green);transition:width .3s"></div></div><div id="pequePagosLista" class="list" style="margin-top:16px"></div></div>
   </section>
 
   <section id="consejos" class="screen card section secondary">
