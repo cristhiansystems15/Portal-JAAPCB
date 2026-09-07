@@ -947,3 +947,27 @@ body{
     display:none!important;
   }
 }
+
+
+/* Aviso automático por mensualidades pendientes */
+.deuda-advertencia{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  margin:14px 0 18px;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid #f59e0b;
+  background:#fff7ed;
+  color:#9a3412;
+  box-sizing:border-box;
+}
+.deuda-advertencia.hidden{display:none!important;}
+.deuda-advertencia.grave{
+  border-color:#dc2626;
+  background:#fef2f2;
+  color:#991b1b;
+}
+.deuda-advertencia-icon{font-size:1.35rem;line-height:1.2;flex:0 0 auto;}
+.deuda-advertencia strong{display:block;margin-bottom:4px;font-size:.95rem;}
+.deuda-advertencia div:last-child{font-size:.82rem;line-height:1.45;}
