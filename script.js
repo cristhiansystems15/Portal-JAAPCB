@@ -1,5 +1,5 @@
 
-const API_URL='https://script.google.com/macros/s/AKfycbzMrNVjJ_rBI5BNTpEUF4ZkeMUbj4iyHNeRku-IocoS1GlD5jd103WwVimVSFP2IUoCQQ/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbzTN8A7P6NnA9hPN-eRYQFI_WkMZm1EfiB866JybOfPSGciq2sZI5XdiOWBte0qxjYVcA/exec';
 const $=id=>document.getElementById(id);
 const safeNumber=n=>Number.isFinite(Number(n))?Number(n):0;
 const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',minimumFractionDigits:2}).format(Number(n)||0);
@@ -91,6 +91,8 @@ function render(data){
  renderList('consejosLista',data.consejos,x=>addItem($('consejosLista'),x.titulo,x.fecha,x.consejo),'No hay consejos publicados.');
 
  renderReunionesMultas(data.reunionesMultas);
+ renderDiasTrabajoMultas(data.diasTrabajoMultas);
+ renderPeque(data.peque);
 
  $('login').classList.add('hidden');
  $('panel').classList.remove('hidden');
@@ -119,7 +121,7 @@ function renderReunionesMultas(rm){
  resumen.append(
    mkStat('Reuniones',total),
    mkStat('Asistidas',asistidas,'attended'),
-   mkStat('Multas',money(totalMultas),'fine')
+   mkStat('Multas pendientes',money(totalMultas),'fine')
  );
 
  const lista=$('reunionesAsistenciaLista');clear(lista);
@@ -129,7 +131,7 @@ function renderReunionesMultas(rm){
    const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';
    const status=document.createElement('div');status.className='meeting-status '+(d.asistio?'yes':'no');status.textContent=d.asistio?'Asistió':'No asistió';
    left.append(date,status);
-   const fine=document.createElement('div');fine.className='meeting-fine';fine.textContent=money(d.multa||0);
+   const fine=document.createElement('div');fine.className='meeting-fine'; if(d.asistio){fine.textContent='SIN MULTA';}else if(d.pagada){fine.textContent='PAGADO L200';}else{fine.textContent='PENDIENTE L200';}
    row.append(left,fine);lista.appendChild(row);
  });
  if(!lista.children.length)empty(lista,'Sin registro de asistencia disponible.');
@@ -164,7 +166,7 @@ async function consultar(){
  if(id.replace(/\D/g,'').length!==13){showError('Escriba un número de identidad válido.');return;}
  $('loginMsg').className='msg hidden';$('consultar').disabled=true;$('consultar').textContent='Consultando…';
  try{
-   const data=await jsonp(API_URL+'?identidad='+encodeURIComponent(id));
+   const data=await jsonp(API_URL+'?identidad='+encodeURIComponent(id)+'&t='+Date.now());
    if(!data||!data.ok){
      intentosFallidos++;
      if(intentosFallidos>=MAX_INTENTOS){
