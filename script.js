@@ -1,232 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Junta de Agua Cayo Blanco | Bienvenido al portal del Abonado</title>
+  <link rel="icon" type="image/png" href="./favicon-cayo-blanco.png">
+<meta name="description" content="Portal del abonado de la Junta de Agua Cayo Blanco">
 
-const API_URL='https://script.google.com/macros/s/AKfycbzTN8A7P6NnA9hPN-eRYQFI_WkMZm1EfiB866JybOfPSGciq2sZI5XdiOWBte0qxjYVcA/exec';
-const $=id=>document.getElementById(id);
-const safeNumber=n=>Number.isFinite(Number(n))?Number(n):0;
-const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',minimumFractionDigits:2}).format(Number(n)||0);
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="menuBackdrop" class="menu-backdrop"></div>
+<div class="app">
+<aside id="sidebar" class="sidebar">
+  <div class="brand">
+    <div class="logo"><img src="LOGO.png" alt="Junta de Agua Cayo Blanco"></div>
+    <div><strong>JUNTA DE AGUA<br>CAYO BLANCO</strong><small>Portal del Abonado</small></div>
+  </div>
+  <nav class="nav" aria-label="Navegación">
+    <button data-target="inicio" class="active"><span class="nav-icon">🏠</span>Inicio</button>
+    <button data-target="pagos"><span class="nav-icon">💧</span>Estado de Cuenta</button>
+    <button data-target="comunicados"><span class="nav-icon">📢</span>Comunicados</button>
+    <button data-target="suministro"><span class="nav-icon">🚰</span>Suministro</button>
+    <button data-target="cortes"><span class="nav-icon">🚱</span>Cortes</button>
+    <button data-target="reuniones"><span class="nav-icon">👥</span>Reuniones</button>
+    <button data-target="consejos"><span class="nav-icon">💧</span>Consejos</button>
+    <button data-target="contactos"><span class="nav-icon">👨‍💻</span>Contactos</button>
+  </nav>
+  <div class="side-help"><strong>¿Necesitas ayuda?</strong><br>Consulta la información de tu cuenta o comunícate con la Junta de Agua.</div>
+  <div class="side-footer">2026 Junta de Agua Cayo Blanco | COA SISTEMS</div>
+</aside>
 
-function showError(text){ $('loginMsg').textContent=text; $('loginMsg').className='msg error'; }
-function jsonp(url){
- return new Promise((resolve,reject)=>{
-  const cb='juntaAgua_'+Date.now()+'_'+Math.floor(Math.random()*10000);
-  const script=document.createElement('script');
-  const timer=setTimeout(()=>{cleanup();reject(new Error('Tiempo de espera agotado.'));},15000);
-  function cleanup(){clearTimeout(timer);delete window[cb];script.remove();}
-  window[cb]=data=>{cleanup();resolve(data);};
-  script.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
-  script.onerror=()=>{cleanup();reject(new Error('No se pudo conectar con el servidor.'));};
-  document.body.appendChild(script);
- });
-}
-function clear(el){el.innerHTML='';}
-function empty(el,text='No hay información disponible.'){clear(el);const p=document.createElement('p');p.className='empty';p.textContent=text;el.appendChild(p);}
-function addItem(container,title,date,text){
- const item=document.createElement('div');item.className='item';
- if(title){const t=document.createElement('div');t.className='item-title';t.textContent=title;item.appendChild(t);}
- if(date){const d=document.createElement('div');d.className='item-date';d.textContent=date;item.appendChild(d);}
- if(text){const x=document.createElement('div');x.className='item-text';x.textContent=text;item.appendChild(x);}
- container.appendChild(item);
-}
+<main class="main">
+<div class="content">
+  <section id="login" class="login-wrap">
+    <div class="login-hero">
+      <div class="big-logo"><img src="LOGO.png" alt="Junta Administradora de Agua Potable Cayo Blanco"></div>
+      <h1>Bienvenido al portal del abonado</h1>
+      <p>Consulta tu estado de cuenta, pagos y toda la información de la Junta de Agua.</p>
+    </div>
+    <div class="login-card">
+      <div class="label"><label for="identidad">Número de identidad</label><span>Acceso del abonado</span></div>
+      <input id="identidad" inputmode="tel" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="0000-0000-0000" maxlength="15">
+      <button id="consultar" class="primary" type="button">Consultar mi cuenta</button>
+      <div id="loginMsg" class="msg hidden" role="alert"></div>
+      <p class="hint">Ingrese el número de identidad registrado ante la Junta de Agua.</p>
+    </div>
+  </section>
 
-function render(data){
- const a=data.abonado||{},c=data.cuenta||{},pending=safeNumber(c.totalGeneralAdeudado ?? c.totalAdeudado),meetingFines=safeNumber(c.totalMultasReuniones),workFines=safeNumber(c.totalMultasTrabajo),pequeDebt=safeNumber(c.totalPequePendiente);
- $('nombre').textContent=a.nombre||'Abonado';
- $('codigo').textContent=a.codigo||'—';
- $('identidadVista').textContent=a.identidad||'—';
- $('direccion').textContent=a.direccion||'—';
- const estadoEl = $('estadoAbonado');
- const estadoTexto = String(a.estado || 'ACTIVO').trim();
- const estadoNormalizado = estadoTexto.toUpperCase()
-   .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
- const esInactivo = /INACTIV|SUSPEND|BAJA|CANCEL/.test(estadoNormalizado);
- const esActivo = !esInactivo && /ACTIV/.test(estadoNormalizado);
- estadoEl.textContent = '● '+estadoTexto;
- estadoEl.classList.toggle('status-active', esActivo);
- estadoEl.classList.toggle('status-inactive', esInactivo || !esActivo);
- $('pagadoTotal').textContent=money(c.totalPagado);
- $('anioMetric').textContent='Este año '+(c.anio||'');
- $('mensualidadesPagadas').textContent=money(c.totalMensualidadesPagadas);
- $('mesesPagadosTexto').textContent=(Number(c.cantidadPagados)||0)+' meses';
- $('moraPagada').textContent=money(c.totalMoraPagada);
- const moraMeses=(c.historial||[]).filter(p=>Number(p.mora)>0).length;
- $('mesesMoraTexto').textContent=moraMeses ? moraMeses+' meses con mora' : 'Sin mora';
- $('deuda').textContent=money(pending);
- $('pendienteTexto').textContent=pending>0 ? ((Number(c.cantidadPendientes)||0)+' meses pendientes'+(meetingFines>0?' · '+money(meetingFines)+' reuniones':'')+(workFines>0?' · '+money(workFines)+' trabajo':'')+(pequeDebt>0?' · '+money(pequeDebt)+' pegue':'') ) : 'Estás al día';
- $('deudaGrande').textContent=money(pending);
- $('status').className='status'+(pending>0?' pending':'');
- $('estado').textContent=pending>0?'PENDIENTE':'AL DÍA';
- $('estadoMensaje').textContent=pending>0?'Revisa los meses pendientes y el saldo de tu cuenta.':'Gracias por mantenerte al día con tus pagos.';
+  <section id="panel" class="hidden" aria-live="polite">
+  <div class="topbar interior-topbar">
+    <button id="menuBtn" class="mobile-menu hidden" aria-label="Mostrar u ocultar menú">☰</button>
+    <div class="welcome">
+      <img class="header-logo" src="LOGO.png" alt="Junta Administradora de Agua Potable Cayo Blanco">
+      <div><h1>Junta de Agua Cayo Blanco</h1><p>Portal del abonado · Información de tu cuenta</p></div>
+    </div>
+    <button id="salir" class="logout hidden" type="button">Cerrar sesión</button>
+  </div>
+  <section id="inicio" class="screen active">
+    <div class="account">
+      <div>
+        <div class="profile">
+          <div class="avatar">👤</div>
+          <div><h2 id="nombre">Abonado</h2><p>Información de tu cuenta</p></div>
+        </div>
+        <div class="meta">
+          <div>Código<strong id="codigo">—</strong></div>
+          <div>Identidad<strong id="identidadVista">—</strong></div>
+          <div>Dirección<strong id="direccion">—</strong></div>
+          <div>Estado<strong><span id="estadoAbonado" class="badge">● ACTIVO</span></strong></div>
+        </div>
+      </div>
+    </div>
 
- const grid=$('monthGrid');clear(grid);
- (c.historial||[]).forEach(p=>{
-   const card=document.createElement('div');
-   const late=p.estado==='PAGADO' && Number(p.mora)>0;
-   card.className=p.estado==='PAGADO'?(late?'month-card late':'month-card paid'):(p.estado==='PENDIENTE'?'month-card pending':'month-card future');
-   const name=document.createElement('div');name.className='m-name';name.textContent=p.mes||'';
-   const circle=document.createElement('div');circle.className='circle';circle.textContent=p.estado==='PAGADO'?'✓':(p.estado==='PENDIENTE'?'!':'◷');
-   const state=document.createElement('div');state.className='m-state';
-   const amount=document.createElement('div');amount.className='m-amount';
-   if(p.estado==='PAGADO'){amount.textContent=money(p.monto);state.textContent=late?'PAGADO CON MORA':'PAGADO';}
-   else if(p.estado==='PENDIENTE'){amount.textContent=money((Number(c.mensualidad)||60)+(Number(c.moraPorMes)||5));state.textContent='PENDIENTE';}
-   else{amount.textContent='—';state.textContent='AÚN NO CORRESPONDE';}
-   card.append(name,circle,state,amount);grid.appendChild(card);
- });
- if(!grid.children.length)empty(grid,'Sin información de pagos.');
+    <div class="metrics">
+      <div class="metric blue"><div class="icon">💧</div><small>Total pagado</small><strong id="pagadoTotal">L0.00</strong><span id="anioMetric">Este año</span></div>
+      <div class="metric green"><div class="icon">🟢</div><small>Mensualidades pagadas</small><strong id="mensualidadesPagadas">L0.00</strong><span id="mesesPagadosTexto">0 meses</span></div>
+      <div class="metric orange"><div class="icon">🟠</div><small>Mora pagada</small><strong id="moraPagada">L0.00</strong><span id="mesesMoraTexto">Sin mora</span></div>
+      <div class="metric dark"><div class="icon">🔴</div><small>Saldo pendiente</small><strong id="deuda">L0.00</strong><span id="pendienteTexto">Estás al día</span></div>
+    </div>
 
- const h=$('historialLista');clear(h);
- (c.historial||[]).filter(p=>p.estado==='PAGADO').forEach(p=>{
-   const row=document.createElement('div');row.className='item';
-   const late=Number(p.mora)>0;
-   addItem(row,p.mes,late?'Pagado con mora':'Pagado',money(p.monto)+(late?' · Incluye L5 de mora':''));
-   h.appendChild(row);
- });
- if(!h.children.length)empty(h,'Sin pagos registrados.');
+    <div id="status" class="status">
+      <div class="left"><div class="status-icon">✓</div><div><div class="eyebrow">Estado de tu cuenta</div><h3 id="estado">AL DÍA</h3><div id="estadoMensaje" style="color:var(--muted);font-size:.78rem;margin-top:4px">Gracias por mantenerte al día con tus pagos.</div></div></div>
+      <div class="debt"><small>Saldo pendiente</small><div id="deudaGrande" class="amount">L0.00</div></div>
+    </div>
 
- const renderList=(id,items,fn,emptyText)=>{
-   const el=$(id);clear(el);(items||[]).forEach(fn);if(!el.children.length)empty(el,emptyText);
- };
- renderList('comunicadosLista',data.comunicados,x=>addItem($('comunicadosLista'),x.titulo,x.fecha,x.mensaje),'No hay comunicados publicados.');
- renderList('suministroLista',data.suministro,x=>addItem($('suministroLista'),x.sector,x.fecha,(x.horaInicio||'')+' - '+(x.horaFin||'')+(x.observacion?' · '+x.observacion:'')),'No hay horarios publicados.');
- renderList('cortesLista',data.cortes,x=>addItem($('cortesLista'),x.sector,x.fecha,(x.horaInicio||'')+' - '+(x.horaFin||'')+(x.motivo?' · '+x.motivo:'')),'No hay cortes programados.');
- renderList('reunionesLista',data.reuniones,x=>addItem($('reunionesLista'),x.descripcion,x.fecha,(x.lugar||'')+' · '+(x.hora||'')),'No hay reuniones publicadas.');
- renderList('consejosLista',data.consejos,x=>addItem($('consejosLista'),x.titulo,x.fecha,x.consejo),'No hay consejos publicados.');
+    <section class="meeting-summary">
+      <div class="summary-head">
+        <div class="summary-title"><div class="summary-icon">📅</div><div><h3>Reuniones asistidas</h3><p>Tu asistencia y multas registradas</p></div></div>
+        <button class="outline" data-target="reuniones">Ver detalle</button>
+      </div>
+      <div class="meeting-stats">
+        <div class="meeting-stat"><small>Reuniones</small><strong id="reunionesTotal">0</strong></div>
+        <div class="meeting-stat attended"><small>Asistidas</small><strong id="reunionesAsistidas">0</strong></div>
+        <div class="meeting-stat fine"><small>Multas</small><strong id="reunionesMultas">L 0.00</strong></div>
+      </div>
+    </section>
 
- renderReunionesMultas(data.reunionesMultas);
- renderDiasTrabajoMultas(data.diasTrabajoMultas);
- renderPeque(data.peque);
+    <section id="pagos" class="card pay-card">
+      <div class="card-head">
+        <div class="card-title"><div class="ico">📅</div><div><h3>Pagos 2026</h3><p>Detalle de tus pagos mensuales</p></div></div>
+        <button class="outline" data-target="historial">Ver historial</button>
+      </div>
+      <div class="card-body">
+        <div id="monthGrid" class="month-grid"></div>
+        <div class="legend">
+          <span><i style="background:var(--green)"></i>Pagado</span>
+          <span><i style="background:var(--orange)"></i>Pagado con mora</span>
+          <span><i style="background:var(--red)"></i>Pendiente</span>
+          <span><i style="background:var(--gray)"></i>Aún no corresponde</span>
+        </div>
+      </div>
+    </section>
 
- $('login').classList.add('hidden');
- $('panel').classList.remove('hidden');
- $('salir').classList.remove('hidden');
- $('menuBtn').classList.remove('hidden');
- $('sidebar').classList.add('opened');
- go('inicio');
- document.querySelector('.topbar').scrollIntoView({behavior:'smooth',block:'start'});
-}
+    <section class="quick card">
+      <div class="card-head"><div class="card-title"><div class="ico">⚡</div><div><h3>Acciones rápidas</h3><p>Accede directamente a la información</p></div></div></div>
+      <div class="card-body"><div class="quick-grid">
+        <button data-target="historial"><span class="qico">📋</span>Historial de pagos</button>
+        <button data-target="comunicados"><span class="qico">📢</span>Ver comunicados</button>
+        <button data-target="suministro"><span class="qico">🚰</span>Próximo suministro</button>
+        <button data-target="cortes"><span class="qico">🚱</span>Ver cortes</button>
+        <button data-target="reuniones"><span class="qico">👥</span>Próximas reuniones</button>
+        <button data-target="trabajo"><span class="qico">🛠️</span>Días de trabajo</button>
+        <button data-target="pegue"><span class="qico">🏠</span>PEGUE</button>
+        <button data-target="contactos"><span class="qico">👨‍💻</span>Contactos</button>
+      </div></div>
+    </section>
 
-function renderReunionesMultas(rm){
- const total=rm?Number(rm.totalReuniones)||0:0;
- const asistidas=rm?Number(rm.asistidas)||0:0;
- const totalMultas=rm?Number(rm.totalMultas)||0:0;
- $('reunionesTotal').textContent=total;
- $('reunionesAsistidas').textContent=asistidas;
- $('reunionesMultas').textContent=money(totalMultas);
+    
+  </section>
 
- const mkStat=(label,value,cls)=>{
-   const d=document.createElement('div');d.className='meeting-stat'+(cls?' '+cls:'');
-   const s=document.createElement('small');s.textContent=label;
-   const strong=document.createElement('strong');strong.textContent=value;
-   d.append(s,strong);return d;
- };
- const resumen=$('reunionesDetalleResumen');clear(resumen);
- resumen.append(
-   mkStat('Reuniones',total),
-   mkStat('Asistidas',asistidas,'attended'),
-   mkStat('Multas pendientes',money(totalMultas),'fine')
- );
+  <section id="historial" class="screen card section secondary">
+    <div class="view-head"><div><h2>Historial de pagos</h2><p>Consulta tus pagos registrados durante el año.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">📋</div><div><h3>Historial de pagos</h3><p>Movimientos registrados durante el año</p></div></div></div>
+    <div class="card-body"><div id="historialLista" class="list"></div></div>
+  </section>
 
- const lista=$('reunionesAsistenciaLista');clear(lista);
- (rm&&rm.detalle||[]).forEach(d=>{
-   const row=document.createElement('div');row.className='meeting-row';
-   const left=document.createElement('div');
-   const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';
-   const status=document.createElement('div');status.className='meeting-status '+(d.asistio?'yes':'no');status.textContent=d.asistio?'Asistió':'No asistió';
-   left.append(date,status);
-   const fine=document.createElement('div');fine.className='meeting-fine'; if(d.asistio){fine.textContent='SIN MULTA';}else if(d.pagada){fine.textContent='PAGADO L200';}else{fine.textContent='PENDIENTE L200';}
-   row.append(left,fine);lista.appendChild(row);
- });
- if(!lista.children.length)empty(lista,'Sin registro de asistencia disponible.');
-}
+  <section id="comunicados" class="screen card section secondary">
+    <div class="view-head"><div><h2>Comunicados</h2><p>Información y avisos importantes de la Junta de Agua.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">📢</div><div><h3>Comunicados</h3><p>Información importante</p></div></div></div>
+    <div class="card-body"><div id="comunicadosLista" class="list"></div></div>
+  </section>
 
-function renderDiasTrabajoMultas(dt){
-  const total=dt?Number(dt.totalDias)||0:0, trabajados=dt?Number(dt.trabajados)||0:0, multas=dt?Number(dt.totalMultasPendientes)||0:0;
-  if($('trabajoTotal'))$('trabajoTotal').textContent=total;
-  if($('trabajoRealizados'))$('trabajoRealizados').textContent=trabajados;
-  if($('trabajoMultas'))$('trabajoMultas').textContent=money(multas);
-  const lista=$('trabajoDetalleLista'); if(!lista)return; clear(lista);
-  (dt&&dt.detalle||[]).forEach(d=>{const row=document.createElement('div');row.className='meeting-row';const left=document.createElement('div');const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';const status=document.createElement('div');status.className='meeting-status '+(d.trabajo?'yes':'no');status.textContent=d.trabajo?'Trabajó':'No trabajó'+(d.pagada?' · PAGADO':'');left.append(date,status);const fine=document.createElement('div');fine.className='meeting-fine';fine.textContent=d.trabajo?'—':(d.pagada?'PAGADO L350':money(350));row.append(left,fine);lista.appendChild(row);});
-  if(!lista.children.length)empty(lista,'Sin registro de días de trabajo disponible.');
-}
-function renderPeque(p){
-  p=p||{}; if($('pequePagado'))$('pequePagado').textContent=money(p.totalPagado); if($('pequeSaldo'))$('pequeSaldo').textContent=money(p.saldoPendiente); if($('pequeEstado'))$('pequeEstado').textContent=p.estado||'PENDIENTE'; if($('pequeProgress'))$('pequeProgress').style.width=(Number(p.porcentaje)||0)+'%';
-  const lista=$('pequePagosLista'); if(!lista)return; clear(lista); (p.pagos||[]).forEach(x=>addItem(lista,x.concepto,money(x.monto),'')); if(!lista.children.length)empty(lista,'No hay pagos de pegue registrados.');
-}
+  <section id="suministro" class="screen card section secondary">
+    <div class="view-head"><div><h2>Suministro de agua</h2><p>Consulta los horarios publicados.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">🚰</div><div><h3>Suministro</h3><p>Horarios publicados</p></div></div></div>
+    <div class="card-body"><div id="suministroLista" class="list"></div></div>
+  </section>
 
-const MAX_INTENTOS=5, BLOQUEO_MS=60000;
-let intentosFallidos=0, bloqueadoHasta=0;
+  <section id="cortes" class="screen card section secondary">
+    <div class="view-head"><div><h2>Cortes programados</h2><p>Consulta interrupciones y trabajos programados.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">🛠️</div><div><h3>Cortes programados</h3><p>Avisos de interrupciones</p></div></div></div>
+    <div class="card-body"><div id="cortesLista" class="list"></div></div>
+  </section>
 
-async function consultar(){
- const ahora=Date.now();
- if(ahora<bloqueadoHasta){
-   const seg=Math.ceil((bloqueadoHasta-ahora)/1000);
-   showError('Demasiados intentos. Intente de nuevo en '+seg+' segundos.');
-   return;
- }
- const id=formatIdentidad($('identidad').value.trim());
- $('identidad').value=id;
- if(id.replace(/\D/g,'').length!==13){showError('Escriba un número de identidad válido.');return;}
- $('loginMsg').className='msg hidden';$('consultar').disabled=true;$('consultar').textContent='Consultando…';
- try{
-   const data=await jsonp(API_URL+'?identidad='+encodeURIComponent(id)+'&t='+Date.now());
-   if(!data||!data.ok){
-     intentosFallidos++;
-     if(intentosFallidos>=MAX_INTENTOS){
-       bloqueadoHasta=Date.now()+BLOQUEO_MS;
-       intentosFallidos=0;
-       showError('Demasiados intentos fallidos. Intente de nuevo en 60 segundos.');
-     }else{
-       showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');
-     }
-     return;
-   }
-   intentosFallidos=0;
-   render(data);
- }catch(err){showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');}
- finally{$('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';}
-}
-function salir(){
- $('panel').classList.add('hidden');$('login').classList.remove('hidden');$('salir').classList.add('hidden');
- $('menuBtn').classList.add('hidden');
- $('sidebar').classList.remove('opened','open');
- $('menuBackdrop').classList.remove('show');
- $('identidad').value='';$('identidad').focus();window.scrollTo({top:0,behavior:'smooth'});
-}
-function go(target){
- const realTarget = target==='pagos' ? 'inicio' : target;
- document.querySelectorAll('.screen').forEach(v=>{
-   v.classList.remove('active');
- });
- const targetEl=document.getElementById(realTarget);
- if(targetEl) targetEl.classList.add('active');
- document.querySelectorAll('.nav button').forEach(b=>{
-   b.classList.toggle('active',b.dataset.target===target);
- });
- closeMenu();
- window.scrollTo({top:0,behavior:'smooth'});
-}
-$('consultar').addEventListener('click',consultar);
-$('identidad').addEventListener('keydown',e=>{if(e.key==='Enter')consultar();});
-$('salir').addEventListener('click',salir);
-function toggleMenu(){
- const side=$('sidebar'), back=$('menuBackdrop');
- const mobile=window.innerWidth<=720;
- if(mobile){
-   side.classList.toggle('open');
-   back.classList.toggle('show');
- }else{
-   side.classList.toggle('opened');
- }
-}
-function closeMenu(){
- $('sidebar').classList.remove('open');
- $('menuBackdrop').classList.remove('show');
-}
-function formatIdentidad(value){
- const digits=String(value||'').replace(/\D/g,'').slice(0,13);
- if(digits.length<=4)return digits;
- if(digits.length<=8)return digits.slice(0,4)+'-'+digits.slice(4);
- return digits.slice(0,4)+'-'+digits.slice(4,8)+'-'+digits.slice(8);
-}
-$('menuBtn').addEventListener('click',toggleMenu);
-$('menuBackdrop').addEventListener('click',closeMenu);
-$('identidad').addEventListener('input',e=>{e.target.value=formatIdentidad(e.target.value);});
-document.querySelectorAll('[data-target]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.target)));
+  <section id="reuniones" class="screen card section secondary">
+    <div class="view-head"><div><h2>Reuniones</h2><p>Próximas reuniones, asistencia y multas.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">👥</div><div><h3>Próximas reuniones</h3><p>Actividades publicadas por la Junta</p></div></div></div>
+    <div class="card-body"><div id="reunionesLista" class="list"></div></div>
+    <div class="card-head"><div class="card-title"><div class="ico">📅</div><div><h3>Mi asistencia</h3><p>Las casillas marcadas son asistencias; las no marcadas generan L200 de multa.</p></div></div></div>
+    <div class="card-body">
+      <div id="reunionesDetalleResumen" class="meeting-stats" style="padding:0 0 14px"></div>
+      <div id="reunionesAsistenciaLista" class="meeting-detail"></div>
+    </div>
+  </section>
+
+  <section id="trabajo" class="screen card section secondary">
+    <div class="view-head"><div><h2>Días de trabajo</h2><p>Registro de días trabajados y multas.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="meeting-stats"><div class="meeting-stat"><small>Días</small><strong id="trabajoTotal">0</strong></div><div class="meeting-stat attended"><small>Trabajados</small><strong id="trabajoRealizados">0</strong></div><div class="meeting-stat fine"><small>Multas pendientes</small><strong id="trabajoMultas">L 0.00</strong></div></div>
+    <div class="card-head"><div class="card-title"><div class="ico">🛠️</div><div><h3>Mi trabajo</h3><p>Si no trabajó, la multa es L350. Si ya pagó, aparece como PAGADO y no se suma al saldo.</p></div></div></div>
+    <div class="card-body"><div id="trabajoDetalleLista" class="meeting-detail"></div></div>
+  </section>
+
+  <section id="pegue" class="screen card section secondary">
+    <div class="view-head"><div><h2>PEGUE</h2><p>Aporte total establecido: L4,500. Plazo de pago: 6 meses.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="meeting-stats"><div class="meeting-stat"><small>Total</small><strong>L4,500</strong></div><div class="meeting-stat attended"><small>Pagado</small><strong id="peguePagado">L0.00</strong></div><div class="meeting-stat fine"><small>Saldo</small><strong id="pegueSaldo">L4,500.00</strong></div></div>
+    <div class="card-head"><div class="card-title"><div class="ico">🏠</div><div><h3 id="pegueEstado">PENDIENTE</h3><p>El saldo del PEGUE se suma al saldo general hasta quedar cancelado.</p></div></div></div>
+    <div class="card-body"><div style="height:10px;background:#e8edf2;border-radius:99px;overflow:hidden"><div id="pegueProgress" style="height:100%;width:0%;background:var(--green);transition:width .3s"></div></div><div id="peguePagosLista" class="list" style="margin-top:16px"></div></div>
+  </section>
+
+  <section id="consejos" class="screen card section secondary">
+    <div class="view-head"><div><h2>Consejos</h2><p>Recomendaciones para cuidar y ahorrar agua.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="card-head"><div class="card-title"><div class="ico">💧</div><div><h3>Consejos para cuidar el agua</h3><p>Recomendaciones de la Junta</p></div></div></div>
+    <div class="card-body"><div id="consejosLista" class="list"></div></div>
+  </section>
+
+  <section id="contactos" class="screen card section secondary">
+    <div class="view-head">
+      <div><h2>Contactos</h2><p>Comunícate con la Junta de Agua cuando necesites ayuda.</p></div>
+      <button class="back-home" data-target="inicio">← Volver al inicio</button>
+    </div>
+    <div class="contact-list">
+      <article class="contact-person">
+        <div class="contact-person-icon">👨‍💻</div>
+        <div class="contact-person-info">
+          <div class="contact-role">SOPORTE DE SISTEMAS</div>
+          <h3>Cristhian Osorio Acosta</h3>
+          <p>Área de Sistemas · Junta de Agua Cayo Blanco</p>
+          <div class="contact-number">📱 9677-5363</div>
+        </div>
+        <div class="contact-person-actions">
+          <a class="contact-action call" href="tel:+50496775363">📞 <span>Llamar</span></a>
+          <a class="contact-action wa" href="https://wa.me/50496775363" target="_blank" rel="noopener">💬 <span>WhatsApp</span></a>
+        </div>
+      </article>
+      <!-- Aquí podremos agregar los demás contactos después. -->
+    </div>
+  </section>
+
+</section>
+
+  <footer class="footer">2026 Junta de Agua Cayo Blanco · Cuidemos el agua, cuidemos nuestro futuro.</footer>
+</div>
+</main>
+</div>
+
+
+<script src="script.js" defer></script>
+</body>
+</html>
