@@ -1,6 +1,7 @@
 
-const API_URL='https://script.google.com/macros/s/AKfycbyQTI23UsgIltlhLI2ymIM3L9xioA4rrRbtICXDoP0liFq-7BabZmZ0J1QC8KFIPahqGA/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbzMrNVjJ_rBI5BNTpEUF4ZkeMUbj4iyHNeRku-IocoS1GlD5jd103WwVimVSFP2IUoCQQ/exec';
 const $=id=>document.getElementById(id);
+const safeNumber=n=>Number.isFinite(Number(n))?Number(n):0;
 const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',minimumFractionDigits:2}).format(Number(n)||0);
 
 function showError(text){ $('loginMsg').textContent=text; $('loginMsg').className='msg error'; }
@@ -27,7 +28,7 @@ function addItem(container,title,date,text){
 }
 
 function render(data){
- const a=data.abonado,c=data.cuenta,pending=Number(c.totalAdeudado)||0;
+ const a=data.abonado||{},c=data.cuenta||{},pending=safeNumber(c.totalGeneralAdeudado ?? c.totalAdeudado),meetingFines=safeNumber(c.totalMultasReuniones),workFines=safeNumber(c.totalMultasTrabajo),pequeDebt=safeNumber(c.totalPequePendiente);
  $('nombre').textContent=a.nombre||'Abonado';
  $('codigo').textContent=a.codigo||'—';
  $('identidadVista').textContent=a.identidad||'—';
@@ -49,7 +50,7 @@ function render(data){
  const moraMeses=(c.historial||[]).filter(p=>Number(p.mora)>0).length;
  $('mesesMoraTexto').textContent=moraMeses ? moraMeses+' meses con mora' : 'Sin mora';
  $('deuda').textContent=money(pending);
- $('pendienteTexto').textContent=pending>0 ? (Number(c.cantidadPendientes)||0)+' meses pendientes' : 'Estás al día';
+ $('pendienteTexto').textContent=pending>0 ? ((Number(c.cantidadPendientes)||0)+' meses pendientes'+(meetingFines>0?' · '+money(meetingFines)+' reuniones':'')+(workFines>0?' · '+money(workFines)+' trabajo':'')+(pequeDebt>0?' · '+money(pequeDebt)+' pegue':'') ) : 'Estás al día';
  $('deudaGrande').textContent=money(pending);
  $('status').className='status'+(pending>0?' pending':'');
  $('estado').textContent=pending>0?'PENDIENTE':'AL DÍA';
@@ -65,7 +66,7 @@ function render(data){
    const state=document.createElement('div');state.className='m-state';
    const amount=document.createElement('div');amount.className='m-amount';
    if(p.estado==='PAGADO'){amount.textContent=money(p.monto);state.textContent=late?'PAGADO CON MORA':'PAGADO';}
-   else if(p.estado==='PENDIENTE'){amount.textContent=money((Number(c.mensualidad)||60)+(Number(c.moraPorMes)||5));}
+   else if(p.estado==='PENDIENTE'){amount.textContent=money((Number(c.mensualidad)||60)+(Number(c.moraPorMes)||5));state.textContent='PENDIENTE';}
    else{amount.textContent='—';state.textContent='AÚN NO CORRESPONDE';}
    card.append(name,circle,state,amount);grid.appendChild(card);
  });
@@ -132,6 +133,20 @@ function renderReunionesMultas(rm){
    row.append(left,fine);lista.appendChild(row);
  });
  if(!lista.children.length)empty(lista,'Sin registro de asistencia disponible.');
+}
+
+function renderDiasTrabajoMultas(dt){
+  const total=dt?Number(dt.totalDias)||0:0, trabajados=dt?Number(dt.trabajados)||0:0, multas=dt?Number(dt.totalMultasPendientes)||0:0;
+  if($('trabajoTotal'))$('trabajoTotal').textContent=total;
+  if($('trabajoRealizados'))$('trabajoRealizados').textContent=trabajados;
+  if($('trabajoMultas'))$('trabajoMultas').textContent=money(multas);
+  const lista=$('trabajoDetalleLista'); if(!lista)return; clear(lista);
+  (dt&&dt.detalle||[]).forEach(d=>{const row=document.createElement('div');row.className='meeting-row';const left=document.createElement('div');const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';const status=document.createElement('div');status.className='meeting-status '+(d.trabajo?'yes':'no');status.textContent=d.trabajo?'Trabajó':'No trabajó'+(d.pagada?' · PAGADO':'');left.append(date,status);const fine=document.createElement('div');fine.className='meeting-fine';fine.textContent=d.trabajo?'—':(d.pagada?'PAGADO L350':money(350));row.append(left,fine);lista.appendChild(row);});
+  if(!lista.children.length)empty(lista,'Sin registro de días de trabajo disponible.');
+}
+function renderPeque(p){
+  p=p||{}; if($('pequePagado'))$('pequePagado').textContent=money(p.totalPagado); if($('pequeSaldo'))$('pequeSaldo').textContent=money(p.saldoPendiente); if($('pequeEstado'))$('pequeEstado').textContent=p.estado||'PENDIENTE'; if($('pequeProgress'))$('pequeProgress').style.width=(Number(p.porcentaje)||0)+'%';
+  const lista=$('pequePagosLista'); if(!lista)return; clear(lista); (p.pagos||[]).forEach(x=>addItem(lista,x.concepto,money(x.monto),'')); if(!lista.children.length)empty(lista,'No hay pagos de pegue registrados.');
 }
 
 const MAX_INTENTOS=5, BLOQUEO_MS=60000;
