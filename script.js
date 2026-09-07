@@ -1,5 +1,5 @@
 
-const API_URL='https://script.google.com/macros/s/AKfycbyNGECXADT2GXCfkeWp6C2CmW2CgZ0ZgmsmRyxHBF1ZuUiu2YJhI5SaKfZiY-TdooJ4xA/exec';
+const API_URL='https://script.google.com/macros/s/AKfycby-HMMw0HCu1Sx1tv3DFon_R00vnskM5HpoQsEzeA3mSYe074Lp3GxyclJvvvQR5nOk2A/exec';
 const $=id=>document.getElementById(id);
 const safeNumber=n=>Number.isFinite(Number(n))?Number(n):0;
 const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',minimumFractionDigits:2}).format(Number(n)||0);
@@ -55,6 +55,28 @@ function render(data){
  $('status').className='status'+(pending>0?' pending':'');
  $('estado').textContent=pending>0?'PENDIENTE':'AL DÍA';
  $('estadoMensaje').textContent=pending>0?'Revisa los meses pendientes y el saldo de tu cuenta.':'Gracias por mantenerte al día con tus pagos.';
+ const mesesPendientes=Number(c.cantidadPendientes)||0;
+ const aviso=$('deudaAdvertencia');
+ const avisoTitulo=$('deudaAdvertenciaTitulo');
+ const avisoTexto=$('deudaAdvertenciaTexto');
+ const avisoIcono=$('deudaAdvertenciaIcon');
+ if(aviso){
+   aviso.classList.add('hidden');
+   aviso.classList.remove('grave');
+   if(mesesPendientes>=3){
+     aviso.classList.remove('hidden');
+     aviso.classList.add('grave');
+     if(avisoIcono) avisoIcono.textContent='🚨';
+     if(avisoTitulo) avisoTitulo.textContent='Aviso importante: tienes '+mesesPendientes+' meses pendientes';
+     if(avisoTexto) avisoTexto.textContent='Tu cuenta presenta tres meses o más pendientes. Te recomendamos ponerte al día para evitar que el saldo continúe aumentando.';
+   }else if(mesesPendientes===2){
+     aviso.classList.remove('hidden');
+     if(avisoIcono) avisoIcono.textContent='⚠️';
+     if(avisoTitulo) avisoTitulo.textContent='Aviso: tienes 2 meses pendientes';
+     if(avisoTexto) avisoTexto.textContent='Tienes dos mensualidades pendientes. Te recomendamos realizar el pago para mantener tu cuenta al día.';
+   }
+ }
+
 
  const grid=$('monthGrid');clear(grid);
  (c.historial||[]).forEach(p=>{
