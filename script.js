@@ -1,6 +1,7 @@
 
 const API_URL='https://script.google.com/macros/s/AKfycby-HMMw0HCu1Sx1tv3DFon_R00vnskM5HpoQsEzeA3mSYe074Lp3GxyclJvvvQR5nOk2A/exec';
 const $=id=>document.getElementById(id);
+const safeNumber=n=>Number.isFinite(Number(n))?Number(n):0;
 const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',minimumFractionDigits:2}).format(Number(n)||0);
 
 function showError(text){ $('loginMsg').textContent=text; $('loginMsg').className='msg error'; }
@@ -27,7 +28,7 @@ function addItem(container,title,date,text){
 }
 
 function render(data){
- const a=data.abonado,c=data.cuenta,pending=Number(c.totalAdeudado)||0;
+ const a=data.abonado||{},c=data.cuenta||{},pending=safeNumber(c.totalGeneralAdeudado ?? c.totalAdeudado),meetingFines=safeNumber(c.totalMultasReuniones);
  $('nombre').textContent=a.nombre||'Abonado';
  $('codigo').textContent=a.codigo||'—';
  $('identidadVista').textContent=a.identidad||'—';
@@ -49,7 +50,7 @@ function render(data){
  const moraMeses=(c.historial||[]).filter(p=>Number(p.mora)>0).length;
  $('mesesMoraTexto').textContent=moraMeses ? moraMeses+' meses con mora' : 'Sin mora';
  $('deuda').textContent=money(pending);
- $('pendienteTexto').textContent=pending>0 ? (Number(c.cantidadPendientes)||0)+' meses pendientes' : 'Estás al día';
+ $('pendienteTexto').textContent=pending>0 ? ((Number(c.cantidadPendientes)||0)+' meses pendientes'+(meetingFines>0?' · '+money(meetingFines)+' en multas':'') ) : 'Estás al día';
  $('deudaGrande').textContent=money(pending);
  $('status').className='status'+(pending>0?' pending':'');
  $('estado').textContent=pending>0?'PENDIENTE':'AL DÍA';
@@ -65,7 +66,7 @@ function render(data){
    const state=document.createElement('div');state.className='m-state';
    const amount=document.createElement('div');amount.className='m-amount';
    if(p.estado==='PAGADO'){amount.textContent=money(p.monto);state.textContent=late?'PAGADO CON MORA':'PAGADO';}
-   else if(p.estado==='PENDIENTE'){amount.textContent='L 55.00';state.textContent='PENDIENTE';}
+   else if(p.estado==='PENDIENTE'){amount.textContent=money(c.mensualidad||60);state.textContent='PENDIENTE';}
    else{amount.textContent='—';state.textContent='AÚN NO CORRESPONDE';}
    card.append(name,circle,state,amount);grid.appendChild(card);
  });
