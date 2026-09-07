@@ -68,12 +68,12 @@ function render(data){
      aviso.classList.add('grave');
      if(avisoIcono) avisoIcono.textContent='🚨';
      if(avisoTitulo) avisoTitulo.textContent='Aviso importante: tienes '+mesesPendientes+' meses pendientes';
-     if(avisoTexto) avisoTexto.textContent='Tu cuenta presenta tres meses o más pendientes. Te recomendamos ponerte al día para evitar que el saldo continúe aumentando.';
+     if(avisoTexto) avisoTexto.textContent='El corte del servicio de agua potable está a punto de proceder. Le solicitamos regularizar su saldo lo antes posible para evitar la suspensión del servicio.';
    }else if(mesesPendientes===2){
      aviso.classList.remove('hidden');
      if(avisoIcono) avisoIcono.textContent='⚠️';
      if(avisoTitulo) avisoTitulo.textContent='Aviso: tienes 2 meses pendientes';
-     if(avisoTexto) avisoTexto.textContent='Tienes dos mensualidades pendientes. Te recomendamos realizar el pago para mantener tu cuenta al día.';
+     if(avisoTexto) avisoTexto.textContent='Se encuentra en riesgo de corte del servicio de agua potable. Le recomendamos realizar su pago lo antes posible para evitar la suspensión del servicio.';
    }
  }
 
