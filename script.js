@@ -65,7 +65,7 @@ function render(data){
    const state=document.createElement('div');state.className='m-state';
    const amount=document.createElement('div');amount.className='m-amount';
    if(p.estado==='PAGADO'){amount.textContent=money(p.monto);state.textContent=late?'PAGADO CON MORA':'PAGADO';}
-   else if(p.estado==='PENDIENTE'){amount.textContent=money(c.mensualidad);state.textContent='PENDIENTE';}
+   else if(p.estado==='PENDIENTE'){amount.textContent=money(c.totalMesPendiente);state.textContent='PENDIENTE';}
    else{amount.textContent='—';state.textContent='AÚN NO CORRESPONDE';}
    card.append(name,circle,state,amount);grid.appendChild(card);
  });
