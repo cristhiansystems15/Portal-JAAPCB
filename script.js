@@ -1,5 +1,5 @@
 
-const API_URL='https://script.google.com/macros/s/AKfycby-HMMw0HCu1Sx1tv3DFon_R00vnskM5HpoQsEzeA3mSYe074Lp3GxyclJvvvQR5nOk2A/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbzO_ssN-i5Eddl7qOlvE0JgE_arPuLdG6dBimIih1hyrzmQ2EgffFHtnmWezKAXn11kSg/exec';
 const $=id=>document.getElementById(id);
 const safeNumber=n=>Number.isFinite(Number(n))?Number(n):0;
 const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',minimumFractionDigits:2}).format(Number(n)||0);
@@ -68,12 +68,12 @@ function render(data){
      aviso.classList.add('grave');
      if(avisoIcono) avisoIcono.textContent='🚨';
      if(avisoTitulo) avisoTitulo.textContent='Aviso importante: tienes '+mesesPendientes+' meses pendientes';
-     if(avisoTexto) avisoTexto.textContent='El corte del servicio de agua potable está a punto de proceder. Le solicitamos regularizar su saldo lo antes posible para evitar la suspensión del servicio.';
+     if(avisoTexto) avisoTexto.textContent='Tu cuenta presenta tres meses o más pendientes. Te recomendamos ponerte al día para evitar que el saldo continúe aumentando.';
    }else if(mesesPendientes===2){
      aviso.classList.remove('hidden');
      if(avisoIcono) avisoIcono.textContent='⚠️';
      if(avisoTitulo) avisoTitulo.textContent='Aviso: tienes 2 meses pendientes';
-     if(avisoTexto) avisoTexto.textContent='Se encuentra en riesgo de corte del servicio de agua potable. Le recomendamos realizar su pago lo antes posible para evitar la suspensión del servicio.';
+     if(avisoTexto) avisoTexto.textContent='Tienes dos mensualidades pendientes. Te recomendamos realizar el pago para mantener tu cuenta al día.';
    }
  }
 
@@ -153,7 +153,7 @@ function renderReunionesMultas(rm){
    const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';
    const status=document.createElement('div');status.className='meeting-status '+(d.asistio?'yes':'no');status.textContent=d.asistio?'Asistió':'No asistió';
    left.append(date,status);
-   const fine=document.createElement('div');fine.className='meeting-fine'; if(d.asistio){fine.textContent='SIN MULTA';}else if(d.pagada){fine.textContent='PAGADO L200';}else{fine.textContent='PENDIENTE L200';}
+   const fine=document.createElement('div');fine.className='meeting-fine'; if(d.asistio){fine.textContent='SIN MULTA';}else if(d.pagada){fine.textContent='PAGADO L'+(Number(d.multa)||200);}else{fine.textContent='PENDIENTE L'+(Number(d.multa)||200);}
    row.append(left,fine);lista.appendChild(row);
  });
  if(!lista.children.length)empty(lista,'Sin registro de asistencia disponible.');
@@ -165,7 +165,7 @@ function renderDiasTrabajoMultas(dt){
   if($('trabajoRealizados'))$('trabajoRealizados').textContent=trabajados;
   if($('trabajoMultas'))$('trabajoMultas').textContent=money(multas);
   const lista=$('trabajoDetalleLista'); if(!lista)return; clear(lista);
-  (dt&&dt.detalle||[]).forEach(d=>{const row=document.createElement('div');row.className='meeting-row';const left=document.createElement('div');const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';const status=document.createElement('div');status.className='meeting-status '+(d.trabajo?'yes':'no');status.textContent=d.trabajo?'Trabajó':'No trabajó'+(d.pagada?' · PAGADO':'');left.append(date,status);const fine=document.createElement('div');fine.className='meeting-fine';fine.textContent=d.trabajo?'—':(d.pagada?'PAGADO L350':money(350));row.append(left,fine);lista.appendChild(row);});
+  (dt&&dt.detalle||[]).forEach(d=>{const row=document.createElement('div');row.className='meeting-row';const left=document.createElement('div');const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';const status=document.createElement('div');status.className='meeting-status '+(d.trabajo?'yes':'no');status.textContent=d.trabajo?'Trabajó':'No trabajó'+(d.pagada?' · PAGADO':'');left.append(date,status);const fine=document.createElement('div');fine.className='meeting-fine';fine.textContent=d.trabajo?'SIN MULTA':(d.pagada?'PAGADO L'+(Number(d.multa)||350):'PENDIENTE L'+(Number(d.multa)||350));row.append(left,fine);lista.appendChild(row);});
   if(!lista.children.length)empty(lista,'Sin registro de días de trabajo disponible.');
 }
 function renderPegue(p){
