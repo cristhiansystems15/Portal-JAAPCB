@@ -1,4 +1,3 @@
-
 const API_URL='https://script.google.com/macros/s/AKfycbxKj78omD4lGK_sseTOdp2YsOaw4mx0OK9SV2u1QnQbAv3Zvs1Oe8nPT9bpH2Z4SuhM5w/exec';
 const $=id=>document.getElementById(id);
 const safeNumber=n=>Number.isFinite(Number(n))?Number(n):0;
@@ -67,13 +66,13 @@ function render(data){
      aviso.classList.remove('hidden');
      aviso.classList.add('grave');
      if(avisoIcono) avisoIcono.textContent='🚨';
-     if(avisoTitulo) avisoTitulo.textContent='Aviso importante: tienes '+mesesPendientes+' meses pendientes';
-     if(avisoTexto) avisoTexto.textContent='Tu cuenta presenta tres meses o más pendientes. Te recomendamos ponerte al día para evitar que el saldo continúe aumentando.';
+     if(avisoTitulo) avisoTitulo.textContent='¡AVISO URGENTE! CORTE PRÓXIMO A PROCEDER';
+     if(avisoTexto) avisoTexto.textContent='Su cuenta registra 3 meses o más pendientes de pago. El corte del servicio de agua potable está a punto de proceder. Le solicitamos regularizar su saldo lo antes posible para evitar la suspensión del servicio.';
    }else if(mesesPendientes===2){
      aviso.classList.remove('hidden');
      if(avisoIcono) avisoIcono.textContent='⚠️';
-     if(avisoTitulo) avisoTitulo.textContent='Aviso: tienes 2 meses pendientes';
-     if(avisoTexto) avisoTexto.textContent='Tienes dos mensualidades pendientes. Te recomendamos realizar el pago para mantener tu cuenta al día.';
+     if(avisoTitulo) avisoTitulo.textContent='¡ADVERTENCIA! RIESGO DE CORTE';
+     if(avisoTexto) avisoTexto.textContent='Su cuenta registra 2 meses pendientes de pago y se encuentra en riesgo de corte del servicio de agua potable. Le recomendamos realizar su pago lo antes posible para evitar la suspensión del servicio.';
    }
  }
 
