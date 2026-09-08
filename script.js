@@ -9,7 +9,7 @@ function jsonp(url){
  return new Promise((resolve,reject)=>{
   const cb='juntaAgua_'+Date.now()+'_'+Math.floor(Math.random()*10000);
   const script=document.createElement('script');
-  const timer=setTimeout(()=>{cleanup();reject(new Error('Tiempo de espera agotado.'));},15000);
+  const timer=setTimeout(()=>{cleanup();reject(new Error('Tiempo de espera agotado.'));},60000);
   function cleanup(){clearTimeout(timer);delete window[cb];script.remove();}
   window[cb]=data=>{cleanup();resolve(data);};
   script.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
