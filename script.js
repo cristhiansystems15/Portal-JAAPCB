@@ -256,7 +256,7 @@ async function consultar(){
    }
    intentosFallidos=0;
    render(data);
- }catch(err){showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');}
+ }catch(err){showError('No fue posible consultar la cuenta. Revise su conexión de internet.');}
  finally{$('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';}
 }
 function salir(){
