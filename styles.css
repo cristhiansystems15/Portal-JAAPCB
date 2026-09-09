@@ -971,3 +971,22 @@ body{
 .deuda-advertencia-icon{font-size:1.35rem;line-height:1.2;flex:0 0 auto;}
 .deuda-advertencia strong{display:block;margin-bottom:4px;font-size:.95rem;}
 .deuda-advertencia div:last-child{font-size:.82rem;line-height:1.45;}
+
+
+/* ============================================================
+   HISTORICO - NUEVO APARTADO
+   ============================================================ */
+.historico-years{display:grid;gap:18px}
+.historico-year{padding:20px}
+.historico-year-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.historico-year-head h3{margin:0;font-size:1.35rem}
+.historico-year-head strong{font-size:1.25rem}
+.historico-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.historico-item{padding:14px;border-radius:12px;background:rgba(0,0,0,.035);display:flex;flex-direction:column;gap:5px}
+.historico-item span{font-size:.78rem;color:var(--muted)}
+.historico-item strong{font-size:1rem}
+.historico-item.total{border:1px solid rgba(0,0,0,.08)}
+@media (max-width:600px){
+  .historico-year-head{align-items:flex-start}
+  .historico-grid{grid-template-columns:1fr}
+}
