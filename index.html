@@ -8,6 +8,27 @@
 <meta name="description" content="Portal del abonado de la Junta de Agua Cayo Blanco">
 
 <link rel="stylesheet" href="styles.css">
+<style>
+.historico-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:18px}
+.historico-intro{margin:18px 18px 0;padding:16px 18px;border:1px solid var(--border,#e3eaf2);border-radius:16px;background:linear-gradient(135deg,#f5fbff,#fff);display:flex;align-items:center;gap:14px}
+.historico-intro-icon{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:#e6f4ff;font-size:22px;flex:0 0 auto}
+.historico-intro strong{display:block;font-size:.95rem;color:var(--ink,#123);margin-bottom:3px}
+.historico-intro span{display:block;color:var(--muted,#667);font-size:.78rem;line-height:1.45}
+.historico-year{border:1px solid var(--border,#e3eaf2);border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 6px 18px rgba(16,55,88,.06)}
+.historico-year-head{padding:18px 20px;background:linear-gradient(135deg,#eef7ff,#fff);display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border,#e3eaf2)}
+.historico-year-head h3{margin:0;font-size:1.25rem;color:#0b4f83}
+.historico-year-head span{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#6b7d8f}
+.historico-items{padding:10px 18px 4px}
+.historico-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 2px;border-bottom:1px solid #edf1f5}
+.historico-row:last-child{border-bottom:0}
+.historico-row small{display:block;color:var(--muted,#667);font-size:.72rem;margin-bottom:3px}
+.historico-row strong{display:block;color:#18364d;font-size:.92rem}
+.historico-total{padding:16px 20px;background:#f7fafc;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border,#e3eaf2)}
+.historico-total span{font-size:.76rem;font-weight:700;text-transform:uppercase;color:#63778a}
+.historico-total strong{font-size:1.25rem;color:#0b4f83}
+.historico-empty{grid-column:1/-1;padding:30px 20px;text-align:center;color:var(--muted,#667);border:1px dashed #ccd8e4;border-radius:16px}
+@media(max-width:700px){.historico-grid{grid-template-columns:1fr;padding:12px}.historico-intro{margin:12px 12px 0}.historico-year-head{padding:15px 16px}.historico-items{padding:8px 15px 3px}.historico-total{padding:14px 16px}}
+</style>
 </head>
 <body>
 <div id="menuBackdrop" class="menu-backdrop"></div>
@@ -20,6 +41,7 @@
   <nav class="nav" aria-label="Navegación">
     <button data-target="inicio" class="active"><span class="nav-icon">🏠</span>Inicio</button>
     <button data-target="pagos"><span class="nav-icon">💧</span>Estado de Cuenta</button>
+    <button data-target="historico"><span class="nav-icon">📚</span>HISTORICO</button>
     <button data-target="comunicados"><span class="nav-icon">📢</span>Comunicados</button>
     <button data-target="suministro"><span class="nav-icon">🚰</span>Suministro</button>
     <button data-target="cortes"><span class="nav-icon">🚱</span>Cortes</button>
@@ -85,14 +107,6 @@
       <div class="debt"><small>Saldo pendiente</small><div id="deudaGrande" class="amount">L0.00</div></div>
     </div>
 
-    <div id="deudaAdvertencia" class="deuda-advertencia hidden" role="alert" aria-live="polite">
-      <div id="deudaAdvertenciaIcon" class="deuda-advertencia-icon">⚠️</div>
-      <div>
-        <strong id="deudaAdvertenciaTitulo">Aviso de cuenta</strong>
-        <div id="deudaAdvertenciaTexto">Revisa los meses pendientes de tu cuenta.</div>
-      </div>
-    </div>
-
     <section class="meeting-summary">
       <div class="summary-head">
         <div class="summary-title"><div class="summary-icon">📅</div><div><h3>Reuniones asistidas</h3><p>Tu asistencia y multas registradas</p></div></div>
@@ -129,13 +143,20 @@
         <button data-target="suministro"><span class="qico">🚰</span>Próximo suministro</button>
         <button data-target="cortes"><span class="qico">🚱</span>Ver cortes</button>
         <button data-target="reuniones"><span class="qico">👥</span>Próximas reuniones</button>
-        <button data-target="trabajo"><span class="qico">🛠️</span>Días de trabajo</button>
-        <button data-target="pegue"><span class="qico">🏠</span>PEGUE</button>
         <button data-target="contactos"><span class="qico">👨‍💻</span>Contactos</button>
       </div></div>
     </section>
 
     
+  </section>
+
+  <section id="historico" class="screen card section secondary">
+    <div class="view-head"><div><h2>HISTORICO</h2><p>Consulta los saldos y pagos registrados de tus dos años históricos más recientes.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
+    <div class="historico-intro">
+      <div class="historico-intro-icon">📚</div>
+      <div><strong>Resumen histórico</strong><span>Los datos corresponden a los años registrados en la hoja HISTORICO.</span></div>
+    </div>
+    <div id="historicoLista" class="historico-grid"></div>
   </section>
 
   <section id="historial" class="screen card section secondary">
@@ -166,25 +187,11 @@
     <div class="view-head"><div><h2>Reuniones</h2><p>Próximas reuniones, asistencia y multas.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
     <div class="card-head"><div class="card-title"><div class="ico">👥</div><div><h3>Próximas reuniones</h3><p>Actividades publicadas por la Junta</p></div></div></div>
     <div class="card-body"><div id="reunionesLista" class="list"></div></div>
-    <div class="card-head"><div class="card-title"><div class="ico">📅</div><div><h3>Mi asistencia</h3><p>Las casillas marcadas son asistencias; las no marcadas generan L200 de multa.</p></div></div></div>
+    <div class="card-head"><div class="card-title"><div class="ico">📅</div><div><h3>Mi asistencia</h3><p>Las casillas marcadas son asistencias; las no marcadas generan L100 de multa.</p></div></div></div>
     <div class="card-body">
       <div id="reunionesDetalleResumen" class="meeting-stats" style="padding:0 0 14px"></div>
       <div id="reunionesAsistenciaLista" class="meeting-detail"></div>
     </div>
-  </section>
-
-  <section id="trabajo" class="screen card section secondary">
-    <div class="view-head"><div><h2>Días de trabajo</h2><p>Registro de días trabajados y multas.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
-    <div class="meeting-stats"><div class="meeting-stat"><small>Días</small><strong id="trabajoTotal">0</strong></div><div class="meeting-stat attended"><small>Trabajados</small><strong id="trabajoRealizados">0</strong></div><div class="meeting-stat fine"><small>Multas pendientes</small><strong id="trabajoMultas">L 0.00</strong></div></div>
-    <div class="card-head"><div class="card-title"><div class="ico">🛠️</div><div><h3>Mi trabajo</h3><p>Si no trabajó, la multa es L350. Si ya pagó, aparece como PAGADO y no se suma al saldo.</p></div></div></div>
-    <div class="card-body"><div id="trabajoDetalleLista" class="meeting-detail"></div></div>
-  </section>
-
-  <section id="pegue" class="screen card section secondary">
-    <div class="view-head"><div><h2>PEGUE</h2><p>Aporte total establecido: L4,500. Plazo de pago: 6 meses.</p></div><button class="back-home" data-target="inicio">← Volver al inicio</button></div>
-    <div class="meeting-stats"><div class="meeting-stat"><small>Total</small><strong>L4,500</strong></div><div class="meeting-stat attended"><small>Pagado</small><strong id="peguePagado">L0.00</strong></div><div class="meeting-stat fine"><small>Saldo</small><strong id="pegueSaldo">L4,500.00</strong></div></div>
-    <div class="card-head"><div class="card-title"><div class="ico">🏠</div><div><h3 id="pegueEstado">PENDIENTE</h3><p>El saldo del PEGUE se suma al saldo general hasta quedar cancelado.</p></div></div></div>
-    <div class="card-body"><div style="height:10px;background:#e8edf2;border-radius:99px;overflow:hidden"><div id="pegueProgress" style="height:100%;width:0%;background:var(--green);transition:width .3s"></div></div><div id="peguePagosLista" class="list" style="margin-top:16px"></div></div>
   </section>
 
   <section id="consejos" class="screen card section secondary">
