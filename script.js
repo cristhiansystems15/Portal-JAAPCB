@@ -1,77 +1,20 @@
-const API_URL='https://script.google.com/macros/s/AKfycbypRV3rg0Wvs6LMJL15OYo2VuwhUwc7BcXwPxjZ36C1RxN2lWZPndY5xHUgqc-BQAOU7w/exec';
+const API_URL='https://script.google.com/macros/s/AKfycbzv1CE-JFm_G5C3KPFpprubyqKHDN8m8Xa68DHHsHjsgJdasjO0nT_v38Xsxm06iiyRZA/exec';
 const $=id=>document.getElementById(id);
+const safeNumber=n=>Number.isFinite(Number(n))?Number(n):0;
 const money=n=>new Intl.NumberFormat('es-HN',{style:'currency',currency:'HNL',minimumFractionDigits:2}).format(Number(n)||0);
 
 function showError(text){ $('loginMsg').textContent=text; $('loginMsg').className='msg error'; }
 function jsonp(url){
  return new Promise((resolve,reject)=>{
-  const cb='juntaAgua_'+Date.now()+'_'+Math.floor(Math.random()*100000);
+  const cb='juntaAgua_'+Date.now()+'_'+Math.floor(Math.random()*10000);
   const script=document.createElement('script');
-  let terminado=false;
-  function cleanup(){
-   if(terminado)return;
-   terminado=true;
-   clearTimeout(timer);
-   try{delete window[cb];}catch(e){window[cb]=undefined;}
-   if(script.parentNode)script.parentNode.removeChild(script);
-  }
-  const timer=setTimeout(()=>{
-   cleanup();
-   reject(new Error('Tiempo de espera agotado.'));
-  },12000);
+  const timer=setTimeout(()=>{cleanup();reject(new Error('Tiempo de espera agotado.'));},60000);
+  function cleanup(){clearTimeout(timer);delete window[cb];script.remove();}
   window[cb]=data=>{cleanup();resolve(data);};
-  script.async=true;
-  script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();
-  script.onerror=()=>{cleanup();reject(new Error('No se pudo cargar la respuesta del servidor.'));};
+  script.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
+  script.onerror=()=>{cleanup();reject(new Error('No se pudo conectar con el servidor.'));};
   document.body.appendChild(script);
  });
-}
-function mostrarCarga(){
- let carga=document.getElementById('cargaConsulta');
- if(carga)carga.remove();
- carga=document.createElement('div');
- carga.id='cargaConsulta';
- carga.setAttribute('role','status');
- carga.setAttribute('aria-live','polite');
- carga.style.cssText='position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(255,255,255,.94);backdrop-filter:blur(5px);box-sizing:border-box';
- carga.innerHTML=`<div style="width:min(430px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:20px;padding:28px;box-shadow:0 18px 55px rgba(0,0,0,.12);text-align:center;font-family:inherit">
-  <div style="font-size:2rem;margin-bottom:10px">💧</div>
-  <div id="cargaTitulo" style="font-size:1.05rem;font-weight:700;color:#17202a;margin-bottom:7px">Buscando información del abonado…</div>
-  <div id="cargaDetalle" style="font-size:.86rem;color:#667085;margin-bottom:18px">Por favor espere mientras consultamos su cuenta.</div>
-  <div style="height:9px;background:#edf1f5;border-radius:99px;overflow:hidden"><div id="cargaBarra" style="height:100%;width:12%;border-radius:99px;background:#1976d2;transition:width .45s ease"></div></div>
-  <div id="cargaPorcentaje" style="font-size:.76rem;color:#667085;margin-top:8px">12%</div>
- </div>`;
- document.body.appendChild(carga);
- const etapas=[
-  [12,'Buscando información del abonado…','Verificando sus datos en el sistema.'],
-  [35,'Consultando pagos…','Revisando el historial de mensualidades.'],
-  [58,'Consultando reuniones y multas…','Verificando asistencia y multas registradas.'],
-  [78,'Cargando información del servicio…','Consultando comunicados, suministro y cortes.'],
-  [92,'Preparando su cuenta…','Organizando toda la información para mostrarla.']
- ];
- let i=0;
- const avanzar=()=>{
-  if(!document.getElementById('cargaConsulta'))return;
-  if(i<etapas.length){
-   const [p,t,d]=etapas[i++];
-   const barra=document.getElementById('cargaBarra'), titulo=document.getElementById('cargaTitulo'), detalle=document.getElementById('cargaDetalle'), porcentaje=document.getElementById('cargaPorcentaje');
-   if(barra)barra.style.width=p+'%';
-   if(titulo)titulo.textContent=t;
-   if(detalle)detalle.textContent=d;
-   if(porcentaje)porcentaje.textContent=p+'%';
-   setTimeout(avanzar,700);
-  }
- };
- setTimeout(avanzar,350);
-}
-function ocultarCarga(){
- const carga=document.getElementById('cargaConsulta');
- if(carga){
-  const barra=document.getElementById('cargaBarra'), porcentaje=document.getElementById('cargaPorcentaje');
-  if(barra)barra.style.width='100%';
-  if(porcentaje)porcentaje.textContent='100%';
-  setTimeout(()=>carga.remove(),250);
- }
 }
 function clear(el){el.innerHTML='';}
 function empty(el,text='No hay información disponible.'){clear(el);const p=document.createElement('p');p.className='empty';p.textContent=text;el.appendChild(p);}
@@ -83,77 +26,21 @@ function addItem(container,title,date,text){
  container.appendChild(item);
 }
 
-function renderHistorico(historico){
- const el=$('historicoLista');
- if(!el)return;
- clear(el);
- const anios=Array.isArray(historico&&historico.anios)?historico.anios.slice(0,2):[];
- if(!anios.length){
-   const p=document.createElement('div');
-   p.className='historico-empty';
-   p.textContent='No hay información histórica disponible para esta identidad.';
-   el.appendChild(p);
-   return;
- }
- anios.sort((a,b)=>Number(b.anio||0)-Number(a.anio||0));
- anios.forEach(anio=>{
-   const card=document.createElement('article');
-   card.className='historico-year';
-   const head=document.createElement('div');
-   head.className='historico-year-head';
-   const title=document.createElement('h3');
-   title.textContent=String(anio.anio||'Año');
-   const tag=document.createElement('span');
-   tag.textContent='Pagos históricos';
-   head.append(title,tag);
-   const items=document.createElement('div');
-   items.className='historico-items';
-   const pagos=anio.pagos||{};
-   [
-     ['Mensualidades',pagos.mensualidades],
-     ['Reuniones y multas',pagos.reunionesMultas],
-     ['Días de trabajo',pagos.diasTrabajo],
-     ['PEGUES',pagos.pegues],
-     ['Otros',pagos.otros]
-   ].forEach(([label,value])=>{
-     const row=document.createElement('div');
-     row.className='historico-row';
-     const left=document.createElement('div');
-     const small=document.createElement('small');
-     small.textContent=label;
-     const strong=document.createElement('strong');
-     strong.textContent=money(value);
-     left.append(small,strong);
-     row.appendChild(left);
-     items.appendChild(row);
-   });
-   const total=document.createElement('div');
-   total.className='historico-total';
-   const totalLabel=document.createElement('span');
-   totalLabel.textContent='Total del año';
-   const totalValue=document.createElement('strong');
-   totalValue.textContent=money(anio.total ?? pagos.total);
-   total.append(totalLabel,totalValue);
-   card.append(head,items,total);
-   el.appendChild(card);
- });
-}
-
 function render(data){
- const a=data.abonado,c=data.cuenta,pending=Number(c.totalAdeudado)||0;
+ const a=data.abonado||{},c=data.cuenta||{},pending=safeNumber(c.totalGeneralAdeudado ?? c.totalAdeudado),meetingFines=safeNumber(c.totalMultasReuniones),workFines=safeNumber(c.totalMultasTrabajo),pegueDebt=safeNumber(c.totalPeguePendiente);
  $('nombre').textContent=a.nombre||'Abonado';
  $('codigo').textContent=a.codigo||'—';
  $('identidadVista').textContent=a.identidad||'—';
  $('direccion').textContent=a.direccion||'—';
  const estadoEl = $('estadoAbonado');
- const estadoTexto = String(a.estado || 'SIN ESTADO').trim();
+ const estadoTexto = String(a.estado || 'ACTIVO').trim();
  const estadoNormalizado = estadoTexto.toUpperCase()
-   .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
- const esActivo = estadoNormalizado === 'ACTIVO' || estadoNormalizado === 'ACTIVA';
- const esInactivo = ['INACTIVO','INACTIVA','SUSPENDIDO','SUSPENDIDA','BAJA','CANCELADO','CANCELADA'].includes(estadoNormalizado);
- estadoEl.classList.remove('status-active','status-inactive');
+   .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ const esInactivo = /INACTIV|SUSPEND|BAJA|CANCEL/.test(estadoNormalizado);
+ const esActivo = !esInactivo && /ACTIV/.test(estadoNormalizado);
  estadoEl.textContent = '● '+estadoTexto;
- estadoEl.classList.add(esActivo && !esInactivo ? 'status-active' : 'status-inactive');
+ estadoEl.classList.toggle('status-active', esActivo);
+ estadoEl.classList.toggle('status-inactive', esInactivo || !esActivo);
  $('pagadoTotal').textContent=money(c.totalPagado);
  $('anioMetric').textContent='Este año '+(c.anio||'');
  $('mensualidadesPagadas').textContent=money(c.totalMensualidadesPagadas);
@@ -162,49 +49,33 @@ function render(data){
  const moraMeses=(c.historial||[]).filter(p=>Number(p.mora)>0).length;
  $('mesesMoraTexto').textContent=moraMeses ? moraMeses+' meses con mora' : 'Sin mora';
  $('deuda').textContent=money(pending);
- $('pendienteTexto').textContent=pending>0 ? (Number(c.cantidadPendientes)||0)+' meses pendientes' : 'Estás al día';
+ $('pendienteTexto').textContent=pending>0 ? ((Number(c.cantidadPendientes)||0)+' meses pendientes'+(meetingFines>0?' · '+money(meetingFines)+' reuniones':'')+(workFines>0?' · '+money(workFines)+' trabajo':'')+(pegueDebt>0?' · '+money(pegueDebt)+' pegue':'') ) : 'Estás al día';
  $('deudaGrande').textContent=money(pending);
  $('status').className='status'+(pending>0?' pending':'');
  $('estado').textContent=pending>0?'PENDIENTE':'AL DÍA';
  $('estadoMensaje').textContent=pending>0?'Revisa los meses pendientes y el saldo de tu cuenta.':'Gracias por mantenerte al día con tus pagos.';
-
- // ===== ALERTA POR MORA =====
- const mesesPendientes = Number(c.cantidadPendientes) || 0;
- let alerta = document.getElementById('moraAlerta');
- if(alerta) alerta.remove();
-
- if(mesesPendientes >= 2){
-   alerta=document.createElement('div');
-   alerta.id='moraAlerta';
-   alerta.setAttribute('role','alert');
-   alerta.style.cssText='margin:16px 0;padding:16px 18px;border-radius:14px;border:1px solid;display:flex;align-items:flex-start;gap:12px;font-size:.82rem;line-height:1.5;box-sizing:border-box';
-   const icon=document.createElement('div');
-   icon.style.cssText='font-size:1.45rem;line-height:1;flex:0 0 auto';
-   const content=document.createElement('div');
-   const title=document.createElement('strong');
-   title.style.display='block';
-   title.style.marginBottom='3px';
-   const message=document.createElement('div');
-
+ const mesesPendientes=Number(c.cantidadPendientes)||0;
+ const aviso=$('deudaAdvertencia');
+ const avisoTitulo=$('deudaAdvertenciaTitulo');
+ const avisoTexto=$('deudaAdvertenciaTexto');
+ const avisoIcono=$('deudaAdvertenciaIcon');
+ if(aviso){
+   aviso.classList.add('hidden');
+   aviso.classList.remove('grave');
    if(mesesPendientes>=3){
-     alerta.style.background='#fff1f1';
-     alerta.style.borderColor='#e05a5a';
-     alerta.style.color='#8f1d1d';
-     icon.textContent='🔴';
-     title.textContent='AVISO IMPORTANTE: RIESGO DE SUSPENSIÓN';
-     message.textContent='Mantienes '+mesesPendientes+' meses de mensualidad pendientes. Tu servicio de agua corre riesgo de suspensión por mora. Te recomendamos regularizar tu cuenta lo antes posible.';
-   }else{
-     alerta.style.background='#fff8e8';
-     alerta.style.borderColor='#e3a72f';
-     alerta.style.color='#765000';
-     icon.textContent='⚠️';
-     title.textContent='AVISO IMPORTANTE: MORA PENDIENTE';
-     message.textContent='Mantienes 2 meses de mensualidad pendientes. Te recomendamos ponerte al día para evitar inconvenientes con el servicio de agua.';
+     aviso.classList.remove('hidden');
+     aviso.classList.add('grave');
+     if(avisoIcono) avisoIcono.textContent='🚨';
+     if(avisoTitulo) avisoTitulo.textContent='¡AVISO URGENTE! CORTE PRÓXIMO A PROCEDER';
+     if(avisoTexto) avisoTexto.textContent='Su cuenta registra 3 meses o más pendientes de pago. El corte del servicio de agua potable está a punto de proceder. Le solicitamos regularizar su saldo lo antes posible para evitar la suspensión del servicio.';
+   }else if(mesesPendientes===2){
+     aviso.classList.remove('hidden');
+     if(avisoIcono) avisoIcono.textContent='⚠️';
+     if(avisoTitulo) avisoTitulo.textContent='¡ADVERTENCIA! RIESGO DE CORTE';
+     if(avisoTexto) avisoTexto.textContent='Su cuenta registra 2 meses pendientes de pago y se encuentra en riesgo de corte del servicio de agua potable. Le recomendamos realizar su pago lo antes posible para evitar la suspensión del servicio.';
    }
-   content.append(title,message);
-   alerta.append(icon,content);
-   $('status').insertAdjacentElement('afterend',alerta);
  }
+
 
  const grid=$('monthGrid');clear(grid);
  (c.historial||[]).forEach(p=>{
@@ -216,7 +87,7 @@ function render(data){
    const state=document.createElement('div');state.className='m-state';
    const amount=document.createElement('div');amount.className='m-amount';
    if(p.estado==='PAGADO'){amount.textContent=money(p.monto);state.textContent=late?'PAGADO CON MORA':'PAGADO';}
-   else if(p.estado==='PENDIENTE'){amount.textContent='L 65.00';state.textContent='PENDIENTE';}
+   else if(p.estado==='PENDIENTE'){amount.textContent=money((Number(c.mensualidad)||60)+(Number(c.moraPorMes)||5));state.textContent='PENDIENTE';}
    else{amount.textContent='—';state.textContent='AÚN NO CORRESPONDE';}
    card.append(name,circle,state,amount);grid.appendChild(card);
  });
@@ -234,47 +105,16 @@ function render(data){
  const renderList=(id,items,fn,emptyText)=>{
    const el=$(id);clear(el);(items||[]).forEach(fn);if(!el.children.length)empty(el,emptyText);
  };
- // ===== REUNIONES Y MULTAS =====
- // Acepta tanto la respuesta nueva como variantes antiguas del backend.
- const rm = data.reunionesMultas || data.reunionesYMultas || data.reunionesAsistidas ||
-   (data.reuniones && !Array.isArray(data.reuniones) ? data.reuniones : null);
- const reunionesPublicadas = Array.isArray(data.reuniones) ? data.reuniones : [];
- const rmTotal = rm ? Number(rm.totalReuniones ?? rm.total) || 0 : null;
- const rmAsistidas = rm ? Number(rm.asistidas ?? rm.reunionesAsistidas) || 0 : null;
- const rmMultas = rm ? Number(rm.totalMultas ?? rm.multas) || 0 : null;
- $('reunionesTotal').textContent = rm ? rmTotal : '—';
- $('reunionesAsistidas').textContent = rm ? rmAsistidas : '—';
- $('reunionesMultas').textContent = rm ? money(rmMultas) : '—';
- const detalle = rm && (rm.detalle || rm.reuniones || rm.items) || [];
- const rd = $('reunionesAsistenciaLista'); clear(rd);
- const rr = $('reunionesDetalleResumen'); clear(rr);
- if(rm) [['Reuniones',rmTotal,''],['Asistidas',rmAsistidas,'attended'],['No asistidas',Math.max(0,rmTotal-rmAsistidas),'absent'],['Multas',money(rmMultas),'fine']].forEach(v=>{
-   const d=document.createElement('div'); d.className='meeting-stat '+v[2];
-   const sm=document.createElement('small'); sm.textContent=v[0];
-   const st=document.createElement('strong'); st.textContent=v[1]; d.append(sm,st); rr.appendChild(d);
- });
- detalle.forEach(x=>{
-   const row=document.createElement('div'); row.className='meeting-row';
-   const left=document.createElement('div');
-   const date=document.createElement('div'); date.className='meeting-date'; date.textContent=x.fecha||x.date||x.fechaReunion||'Fecha no disponible';
-   const rawAsistencia = x.asistio ?? x.asistencia ?? x.asistioReunion ?? x.presente;
-   const yes = rawAsistencia===true || String(rawAsistencia).trim().toUpperCase()==='TRUE' || String(rawAsistencia).trim().toUpperCase()==='VERDADERO' || String(rawAsistencia).trim().toUpperCase()==='SI' || String(rawAsistencia).trim().toUpperCase()==='SÍ' || String(rawAsistencia).trim().toUpperCase()==='ASISTIO' || String(rawAsistencia).trim().toUpperCase()==='ASISTIÓ';
-   const st=document.createElement('div'); st.className='meeting-status '+(yes?'yes':'no'); st.textContent=yes?'✓ ASISTIÓ':'✕ NO ASISTIÓ';
-   left.append(date,st);
-   const fine=document.createElement('div'); fine.className='meeting-fine'; fine.textContent=yes?'Sin multa':money(Number(x.multa ?? x.montoMulta ?? 200)||200);
-   row.append(left,fine); rd.appendChild(row);
- });
- if(!detalle.length){
-   const p=document.createElement('p'); p.className='empty'; p.textContent='Aún no hay registros de asistencia disponibles.'; rd.appendChild(p);
-   rr.innerHTML='';
- }
-
  renderList('comunicadosLista',data.comunicados,x=>addItem($('comunicadosLista'),x.titulo,x.fecha,x.mensaje),'No hay comunicados publicados.');
  renderList('suministroLista',data.suministro,x=>addItem($('suministroLista'),x.sector,x.fecha,(x.horaInicio||'')+' - '+(x.horaFin||'')+(x.observacion?' · '+x.observacion:'')),'No hay horarios publicados.');
  renderList('cortesLista',data.cortes,x=>addItem($('cortesLista'),x.sector,x.fecha,(x.horaInicio||'')+' - '+(x.horaFin||'')+(x.motivo?' · '+x.motivo:'')),'No hay cortes programados.');
- renderList('reunionesLista',reunionesPublicadas,x=>addItem($('reunionesLista'),x.descripcion||'Reunión de abonados',x.fecha,(x.lugar||'')+' · '+(x.hora||'')),'No hay reuniones publicadas.');
+ renderList('reunionesLista',data.reuniones,x=>addItem($('reunionesLista'),x.descripcion,x.fecha,(x.lugar||'')+' · '+(x.hora||'')),'No hay reuniones publicadas.');
  renderList('consejosLista',data.consejos,x=>addItem($('consejosLista'),x.titulo,x.fecha,x.consejo),'No hay consejos publicados.');
- renderHistorico(data.historico);
+
+ renderReunionesMultas(data.reunionesMultas);
+ renderDiasTrabajoMultas(data.diasTrabajoMultas);
+ renderPegue(data.pegue);
+  renderHistorico(data.historico);
 
  $('login').classList.add('hidden');
  $('panel').classList.remove('hidden');
@@ -285,37 +125,139 @@ function render(data){
  document.querySelector('.topbar').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+function renderReunionesMultas(rm){
+ const total=rm?Number(rm.totalReuniones)||0:0;
+ const asistidas=rm?Number(rm.asistidas)||0:0;
+ const totalMultas=rm?Number(rm.totalMultas)||0:0;
+ $('reunionesTotal').textContent=total;
+ $('reunionesAsistidas').textContent=asistidas;
+ $('reunionesMultas').textContent=money(totalMultas);
+
+ const mkStat=(label,value,cls)=>{
+   const d=document.createElement('div');d.className='meeting-stat'+(cls?' '+cls:'');
+   const s=document.createElement('small');s.textContent=label;
+   const strong=document.createElement('strong');strong.textContent=value;
+   d.append(s,strong);return d;
+ };
+ const resumen=$('reunionesDetalleResumen');clear(resumen);
+ resumen.append(
+   mkStat('Reuniones',total),
+   mkStat('Asistidas',asistidas,'attended'),
+   mkStat('Multas pendientes',money(totalMultas),'fine')
+ );
+
+ const lista=$('reunionesAsistenciaLista');clear(lista);
+ (rm&&rm.detalle||[]).forEach(d=>{
+   const row=document.createElement('div');row.className='meeting-row';
+   const left=document.createElement('div');
+   const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';
+   const status=document.createElement('div');status.className='meeting-status '+(d.asistio?'yes':'no');status.textContent=d.asistio?'Asistió':'No asistió';
+   left.append(date,status);
+   const fine=document.createElement('div');fine.className='meeting-fine'; if(d.asistio){fine.textContent='SIN MULTA';}else if(d.pagada){fine.textContent='PAGADO L'+(Number(d.multa)||200);}else{fine.textContent='PENDIENTE L'+(Number(d.multa)||200);}
+   row.append(left,fine);lista.appendChild(row);
+ });
+ if(!lista.children.length)empty(lista,'Sin registro de asistencia disponible.');
+}
+
+function renderDiasTrabajoMultas(dt){
+  const total=dt?Number(dt.totalDias)||0:0, trabajados=dt?Number(dt.trabajados)||0:0, multas=dt?Number(dt.totalMultasPendientes)||0:0;
+  if($('trabajoTotal'))$('trabajoTotal').textContent=total;
+  if($('trabajoRealizados'))$('trabajoRealizados').textContent=trabajados;
+  if($('trabajoMultas'))$('trabajoMultas').textContent=money(multas);
+  const lista=$('trabajoDetalleLista'); if(!lista)return; clear(lista);
+  (dt&&dt.detalle||[]).forEach(d=>{const row=document.createElement('div');row.className='meeting-row';const left=document.createElement('div');const date=document.createElement('div');date.className='meeting-date';date.textContent=d.fecha||'';const status=document.createElement('div');status.className='meeting-status '+(d.trabajo?'yes':'no');status.textContent=d.trabajo?'Trabajó':'No trabajó'+(d.pagada?' · PAGADO':'');left.append(date,status);const fine=document.createElement('div');fine.className='meeting-fine';fine.textContent=d.trabajo?'SIN MULTA':(d.pagada?'PAGADO L'+(Number(d.multa)||350):'PENDIENTE L'+(Number(d.multa)||350));row.append(left,fine);lista.appendChild(row);});
+  if(!lista.children.length)empty(lista,'Sin registro de días de trabajo disponible.');
+}
+function renderPegue(p){
+  p=p||{}; if($('peguePagado'))$('peguePagado').textContent=money(p.totalPagado); if($('pegueSaldo'))$('pegueSaldo').textContent=money(p.saldoPendiente); if($('pegueEstado'))$('pegueEstado').textContent=p.estado||'PENDIENTE'; if($('pegueProgress'))$('pegueProgress').style.width=(Number(p.porcentaje)||0)+'%';
+  const lista=$('peguePagosLista'); if(!lista)return; clear(lista); (p.pagos||[]).forEach(x=>addItem(lista,x.concepto,money(x.monto),'')); if(!lista.children.length)empty(lista,'No hay pagos de pegue registrados.');
+}
+
+function renderHistorico(historico){
+  const lista=$('historicoLista');
+  if(!lista)return;
+  clear(lista);
+
+  const anios=Array.isArray(historico&&historico.anios)
+    ? historico.anios.slice().sort((a,b)=>Number(b.anio)-Number(a.anio)).slice(0,2)
+    : [];
+
+  if(!anios.length){
+    empty(lista,'No hay información histórica disponible.');
+    return;
+  }
+
+  anios.forEach(anio=>{
+    const card=document.createElement('article');
+    card.className='historico-year card';
+
+    const head=document.createElement('div');
+    head.className='historico-year-head';
+    const title=document.createElement('h3');
+    title.textContent='Año '+(anio.anio||'');
+    const total=document.createElement('strong');
+    total.textContent=money(anio.total);
+    head.append(title,total);
+
+    const grid=document.createElement('div');
+    grid.className='historico-grid';
+
+    const items=[
+      ['Mensualidades',anio.mensualidades],
+      ['Reuniones y multas',anio.reunionesMultas],
+      ['Días de trabajo',anio.diasTrabajo],
+      ['PEGUES',anio.pegues],
+      ['Otros',anio.otros],
+      ['Total',anio.total]
+    ];
+
+    items.forEach(([label,value])=>{
+      const item=document.createElement('div');
+      item.className='historico-item'+(label==='Total'?' total':'');
+      const l=document.createElement('span');
+      l.textContent=label;
+      const v=document.createElement('strong');
+      v.textContent=money(value);
+      item.append(l,v);
+      grid.appendChild(item);
+    });
+
+    card.append(head,grid);
+    lista.appendChild(card);
+  });
+}
+
+const MAX_INTENTOS=5, BLOQUEO_MS=60000;
+let intentosFallidos=0, bloqueadoHasta=0;
+
 async function consultar(){
+ const ahora=Date.now();
+ if(ahora<bloqueadoHasta){
+   const seg=Math.ceil((bloqueadoHasta-ahora)/1000);
+   showError('Demasiados intentos. Intente de nuevo en '+seg+' segundos.');
+   return;
+ }
  const id=formatIdentidad($('identidad').value.trim());
  $('identidad').value=id;
  if(id.replace(/\D/g,'').length!==13){showError('Escriba un número de identidad válido.');return;}
  $('loginMsg').className='msg hidden';$('consultar').disabled=true;$('consultar').textContent='Consultando…';
- mostrarCarga();
- let ultimoError=null;
- for(let intento=1;intento<=2;intento++){
-  try{
-   if(intento===2){
-    const t=$('cargaTitulo'),d=$('cargaDetalle');
-    if(t)t.textContent='Reintentando conexión…';
-    if(d)d.textContent='El primer intento tardó más de lo esperado. Estamos intentando nuevamente.';
-   }
-   const data=await jsonp(API_URL+'?identidad='+encodeURIComponent(id));
+ try{
+   const data=await jsonp(API_URL+'?identidad='+encodeURIComponent(id)+'&t='+Date.now());
    if(!data||!data.ok){
-    ocultarCarga();
-    showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');
-    return;
+     intentosFallidos++;
+     if(intentosFallidos>=MAX_INTENTOS){
+       bloqueadoHasta=Date.now()+BLOQUEO_MS;
+       intentosFallidos=0;
+       showError('Demasiados intentos fallidos. Intente de nuevo en 60 segundos.');
+     }else{
+       showError(data&&data.mensaje?data.mensaje:'No encontramos esa identidad.');
+     }
+     return;
    }
+   intentosFallidos=0;
    render(data);
-   ocultarCarga();
-   return;
-  }catch(err){
-   ultimoError=err;
-  }
- }
- ocultarCarga();
- showError('La conexión está tardando más de lo esperado. Revise su conexión e inténtelo nuevamente.');
- console.warn('JAAPCB consulta fallida tras 2 intentos:',ultimoError);
- $('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';
+ }catch(err){showError('No fue posible consultar la cuenta. Revise la conexión del sistema.');}
+ finally{$('consultar').disabled=false;$('consultar').textContent='Consultar mi cuenta';}
 }
 function salir(){
  $('panel').classList.add('hidden');$('login').classList.remove('hidden');$('salir').classList.add('hidden');
